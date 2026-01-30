@@ -64,11 +64,17 @@
             let btnClass = "add";
             let statusHtml = '<b style="color:#dc3545">❌ À visiter</b>';
 
-            let popupContent = /*HTML*/`
+            let popupContent = /*HTML*/ `
                         <div style="text-align:center; min-width: 150px;">
                             <strong>${site.site}</strong><br>
                             <small style="color:gray">${site.category}</small>
+
                             <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
+
+                            <p>${site.short_description}</p>
+
+                            <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
+
                             ${statusHtml}<br>
                             <button class="action-btn ${btnClass}")">
                                 ${btnText}
