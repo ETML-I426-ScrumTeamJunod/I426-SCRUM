@@ -15,14 +15,22 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    />
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
   </head>
 
   <body>
     <div
       id="map"
-      style="width: 1000px; height: 800px; position: relative"
-      class="leaflet-container leaflet-touch leaflet-fade-anim leaflet-grab leaflet-touch-drag leaflet-touch-zoom"
-      tabindex="0"
+      style="width: 1024px; height: 1020px; position: relative"
     ></div>
     <script>
       let bounds = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
@@ -54,36 +62,39 @@
           return response.json();
         })
         .then((data) => {
-          data.forEach((site) => {
-            let marker = L.marker([
-              site.coordinates.lat,
-              site.coordinates.lon,
-            ]).addTo(map);
+          // Create a cluster
+          const markersCluster = L.markerClusterGroup();
 
-            let btnText = "Marquer comme non visité";
+          data.forEach((site) => {
+            let marker = L.marker([site.coordinates.lat, site.coordinates.lon]);
+
+            let btnText = "Ajouter en tant que visité";
             let btnClass = "add";
-            let statusHtml = '<b style="color:#dc3545">❌ À visiter</b>';
+            let statusHtml = '<b style="color:#dc3545"></b>';
 
             let popupContent = /*HTML*/ `
-                        <div style="text-align:center; min-width: 150px;">
-                            <strong>${site.site}</strong><br>
-                            <small style="color:gray">${site.category}</small>
+        <div style="text-align:center; min-width: 150px;">
+            <strong>${site.site}</strong><br>
+            <small style="color:gray">${site.category}</small>
 
-                            <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
+            <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
 
-                            <p>${site.short_description}</p>
+            <p>${site.short_description}</p>
 
-                            <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
+            <hr style="margin: 5px 0; border: 0; border-top: 1px solid #eee;">
 
-                            ${statusHtml}<br>
-                            <button class="action-btn ${btnClass}")">
-                                ${btnText}
-                            </button>
-                        </div>
-                    `;
+            ${statusHtml}<br>
+            <button class="action-btn ${btnClass}">
+                ${btnText}
+            </button>
+        </div>
+      `;
 
             marker.bindPopup(popupContent);
+            markersCluster.addLayer(marker); // add to cluster
           });
+
+          map.addLayer(markersCluster); // add cluster to map
         })
         .catch((err) => {
           console.error("Error loading JSON:", err);
