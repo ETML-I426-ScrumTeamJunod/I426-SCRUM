@@ -37,7 +37,7 @@
         "
       >
         <h3>Veuillez sélecter un site</h3>
-        <p>Cliquez sure un site pour voir sa description</p>
+        <p>Cliquez sur un site pour voir sa description</p>
       </div>
     </div>
 
@@ -133,7 +133,7 @@
 
               // Reset previous marker
               if (activeMarker && activeMarker !== marker) {
-                activeMarker.setIcon(chosenIcon);
+                activeMarker.setIcon(activeMarker.originalIcon);
               }
 
               // Set active marker
@@ -162,8 +162,8 @@
         }
 
         document.getElementById("info-panel").innerHTML = `
-          <h3>Select a site</h3>
-          <p>Click a marker to see details here.</p>
+          <h3>Veuillez sélecter un site</h3>
+          <p>Cliquez sur un site pour voir sa description</p>
         `;
       });
     </script>
