@@ -80,8 +80,9 @@ fetch("./ressources/data/world-heritage-list.json")
         title: site.site,
       });
 
-      // Ajout de l'icône en tant que propriété d'objet pour une utilisation future.
+      // Ajout de l'icône et la catégorie en tant que propriétés d'objet pour une utilisation future.
       marker.originalIcon = pinChosen;
+      marker.category = site.category;
 
       // Création du contenu du menu de droite
       const panelContent = /* HTML */ `
@@ -164,6 +165,34 @@ fetch("./ressources/data/world-heritage-list.json")
 
 // Si la carte a été cliqué, enlever la sélection du pin actuel
 map.on("click", () => {
+  if (markerSelected) {
+    markerSelected.setIcon(markerSelected.originalIcon);
+    markerSelected = null;
+  }
+
+  document.getElementById("info-panel").innerHTML = /* HTML */ `
+    <h3>Veuillez sélectionner un site</h3>
+    <p>Cliquez sur un site pour voir sa description</p>
+  `;
+});
+
+const filterSelect = document.getElementById("filter-category");
+
+// Si les filtres ont été changé, modifier les pins visible
+filterSelect.addEventListener("change", (e) => {
+  const selectedCategory = e.target.value;
+
+  // Effacer les pins
+  markerCluster.clearLayers();
+
+  // Rajouter les bon pins
+  markers.forEach((marker) => {
+    if (selectedCategory === "all" || marker.category === selectedCategory) {
+      markerCluster.addLayer(marker);
+    }
+  });
+
+  // enlever la sélection du pin actuel
   if (markerSelected) {
     markerSelected.setIcon(markerSelected.originalIcon);
     markerSelected = null;
