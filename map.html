@@ -36,7 +36,6 @@
       src="https://unpkg.com/leaflet.pinsearch/src/Leaflet.PinSearch.js"
       crossorigin=""
     ></script>
-    
   </head>
 
   <body style="margin: 0">
@@ -44,7 +43,6 @@
       <div id="map" style="width: 70vw; height: 100vh"></div>
 
       <div
-        id="info-panel"
         style="
           width: 30vw;
           padding: 16px;
@@ -53,8 +51,30 @@
           font-family: sans-serif;
         "
       >
-        <h3>Veuillez sélectionner un site</h3>
-        <p>Cliquez sure un site pour voir sa description</p>
+        <div
+          style="
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+          "
+        >
+          <label for="filter-category" style="font-weight: bold"
+            >Filtrer par catégorie :</label
+          >
+          <select
+            id="filter-category"
+            style="width: 100%; margin-top: 8px; padding: 5px"
+          >
+            <option value="all">Tous les sites</option>
+            <option value="Natural">Naturel</option>
+            <option value="Cultural">Culturel</option>
+            <option value="Mixed">Mixte</option>
+          </select>
+        </div>
+        <div id="info-panel">
+          <h3>Veuillez sélectionner un site</h3>
+          <p>Cliquez sure un site pour voir sa description</p>
+        </div>
       </div>
     </div>
 
@@ -134,7 +154,7 @@
             );
 
             marker.originalIcon = chosenIcon;
-
+            marker.category = site.category;
             const panelContent = `
               <h2>${site.site}</h2>
               <small style="color: gray">${site.category}</small>
@@ -201,17 +221,42 @@
             })
             .addTo(map);
         });
+
       // Clear selection on click
       map.on("click", () => {
         if (activeMarker) {
           activeMarker.setIcon(activeMarker.originalIcon);
           activeMarker = null;
         }
-
         document.getElementById("info-panel").innerHTML = `
-          <h3>Select a site</h3>
-          <p>Click a marker to see details here.</p>
-        `;
+    <h3>Veuillez sélectionner un site</h3>
+    <p>Cliquez sur un site pour voir sa description</p>
+  `;
+      });
+      const filterSelect = document.getElementById("filter-category");
+
+      filterSelect.addEventListener("change", (e) => {
+        const selectedCategory = e.target.value;
+
+        markersCluster.clearLayers();
+
+        allMarkers.forEach((marker) => {
+          if (
+            selectedCategory === "all" ||
+            marker.category === selectedCategory
+          ) {
+            markersCluster.addLayer(marker);
+          }
+        });
+
+        if (activeMarker) {
+          activeMarker.setIcon(activeMarker.originalIcon);
+          activeMarker = null;
+        }
+        document.getElementById("info-panel").innerHTML = `
+    <h3>Veuillez sélectionner un site</h3>
+    <p>Cliquez sur un site pour voir sa description</p>
+  `;
       });
     </script>
   </body>
