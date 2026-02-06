@@ -169,8 +169,8 @@ map.on("click", () => {
     markerSelected = null;
   }
 
-  document.getElementById("info-panel").innerHTML = `
-          <h3>Select a site</h3>
-          <p>Click a marker to see details here.</p>
-        `;
+  document.getElementById("info-panel").innerHTML = /* HTML */ `
+    <h3>Veuillez sélectionner un site</h3>
+    <p>Cliquez sur un site pour voir sa description</p>
+  `;
 });
