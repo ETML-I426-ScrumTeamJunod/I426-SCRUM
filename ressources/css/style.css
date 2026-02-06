@@ -1,7 +1,14 @@
-#map { height: 400px; width: 400px; }
-.leaflet-control-pinsearch:not(:hover) .search-results {
-    display: none !important;
+/**
+* ETML
+* Auteur        : Néo Darbellay et David Sottas
+* Date          : 06.02.2026
+* Description   : CSS Utilisé pour la carte
+*/
+
+.leaflet-control-pinsearch:not(:hover):not(:focus-within) .search-results {
+  display: none !important;
 }
-.leaflet-control-pinsearch .search-results{
-    top: 100% !important;
+
+.leaflet-control-pinsearch .search-results {
+  top: 100% !important;
 }
