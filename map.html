@@ -1,42 +1,54 @@
 <!doctype html>
 <html lang="fr">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sites de l'UNESCO</title>
+    <!--
+    Auteur      : Néo Darbellay, David Sottas et Aaron Vichery
+    Date        : 23.01.2026
+    Description : Page de test pour la carte interactive
+    -->
 
+    <meta charset="UTF-8" />
+
+    <meta
+      name="author"
+      content="Néo Darbellay, David Sottas et Aaron Vichery"
+    />
+    <meta name="description" content="Page de test pour la carte interactive" />
+    <meta name="keywords" xml:lang="fr" lang="fr" content="test, carte" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Carte - Sites de l'UNESCO</title>
+
+    <!-- Leaflet -->
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
 
+    <!-- Les clusteurs (groupes de pins quand il y en a trop) -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
+    />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
     />
 
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
-    />
-
+    <!-- Rercherche de pins -->
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet.pinsearch/src/Leaflet.PinSearch.css"
       crossorigin=""
     />
-
     <link rel="stylesheet" href="./ressources/css/style.css" crossorigin="" />
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-
     <script
       src="https://unpkg.com/leaflet.pinsearch/src/Leaflet.PinSearch.js"
       crossorigin=""
     ></script>
-    
   </head>
 
   <body style="margin: 0">
@@ -58,161 +70,6 @@
       </div>
     </div>
 
-    <script>
-      // Map
-      const bounds = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
-
-      const map = L.map("map", {
-        center: [20, 0],
-        zoom: 2,
-        minZoom: 2,
-        maxBounds: bounds,
-        maxBoundsViscosity: 1.0,
-      });
-
-      L.tileLayer(
-        "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-        {
-          attribution:
-            "Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye",
-        },
-      ).addTo(map);
-
-      // Icons
-      const greenIcon = L.icon({
-        iconUrl: "/ressources/images/marker-green.png",
-
-        iconSize: [25, 41],
-        iconAnchor: [25 / 2, 41],
-      });
-
-      const yellowIcon = L.icon({
-        iconUrl: "/ressources/images/marker-yellow.png",
-
-        iconSize: [25, 41],
-        iconAnchor: [25 / 2, 41],
-      });
-      const blueIcon = L.icon({
-        iconUrl: "/ressources/images/marker-blue.png",
-
-        iconSize: [25, 41],
-        iconAnchor: [25 / 2, 41],
-      });
-
-      const selectedIcon = L.icon({
-        iconUrl: "/ressources/images/marker-red.png",
-
-        iconSize: [25, 41],
-        iconAnchor: [25 / 2, 41],
-      });
-
-      // Markers
-      const markersCluster = L.markerClusterGroup();
-      const allMarkers = [];
-      let activeMarker = null;
-
-      fetch("./ressources/data/world-heritage-list.json")
-        .then((r) => r.json())
-        .then((data) => {
-          data.forEach((site) => {
-            let chosenIcon;
-
-            if (site.category == "Natural") {
-              chosenIcon = greenIcon;
-            } else if (site.category == "Cultural") {
-              chosenIcon = yellowIcon;
-            } else {
-              chosenIcon = blueIcon;
-            }
-
-            let marker = L.marker(
-              [site.coordinates.lat, site.coordinates.lon],
-              {
-                icon: chosenIcon,
-                title: site.site,
-              },
-            );
-
-            marker.originalIcon = chosenIcon;
-
-            const panelContent = `
-              <h2>${site.site}</h2>
-              <small style="color: gray">${site.category}</small>
-              <hr>
-              <p>${site.short_description}</p>
-              <button style="padding: 8px 12px">
-                Ajouter en tant que visité
-              </button>
-            `;
-
-            marker.on("click", () => {
-              // Update side panel
-              document.getElementById("info-panel").innerHTML = panelContent;
-
-              // Reset previous marker
-              if (activeMarker && activeMarker !== marker) {
-                activeMarker.setIcon(activeMarker.originalIcon);
-              }
-
-              // Set active marker
-              marker.setIcon(selectedIcon);
-              activeMarker = marker;
-
-              // Focus map
-              markersCluster.zoomToShowLayer(marker, () => {
-                map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), {
-                  animate: true,
-                });
-              });
-            });
-            allMarkers.push(marker);
-            markersCluster.addLayer(marker);
-          });
-          map.addLayer(markersCluster);
-
-          L.control
-            .pinSearch({
-              position: "topright",
-              placeholder: "Search...",
-              buttonText: "Search",
-              layerToSearch: markersCluster,
-              onSearch: function (query) {
-                if (!query) {
-                  return;
-                }
-
-                const marker = allMarkers.find((m) =>
-                  m.options.title.toLowerCase().includes(query.toLowerCase()),
-                );
-
-                if (!marker) {
-                  alert("Aucun résultat");
-                  return;
-                }
-
-                markersCluster.zoomToShowLayer(marker, function () {
-                  marker.fire("click");
-                  animate: true;
-                });
-              },
-              searchBarWidth: "200px",
-              searchBarHeight: "30px",
-              maxSearchResults: 10,
-            })
-            .addTo(map);
-        });
-      // Clear selection on click
-      map.on("click", () => {
-        if (activeMarker) {
-          activeMarker.setIcon(activeMarker.originalIcon);
-          activeMarker = null;
-        }
-
-        document.getElementById("info-panel").innerHTML = `
-          <h3>Select a site</h3>
-          <p>Click a marker to see details here.</p>
-        `;
-      });
-    </script>
+    <script src="/src/js/main.js"></script>
   </body>
 </html>
