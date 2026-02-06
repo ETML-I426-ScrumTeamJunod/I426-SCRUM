@@ -1,37 +1,45 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sites de l'UNESCO</title>
+
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
     />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
+    />
 
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"
     />
-    <link
-      rel="stylesheet"
-      href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"
-    />
-    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet.pinsearch/src/Leaflet.PinSearch.css"
       crossorigin=""
     />
+
+    <link rel="stylesheet" href="./ressources/css/style.css" crossorigin="" />
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
     <script
       src="https://unpkg.com/leaflet.pinsearch/src/Leaflet.PinSearch.js"
       crossorigin=""
     ></script>
+    
   </head>
 
-  <body>
-    <body style="margin: 0">
+  <body style="margin: 0">
     <div style="display: flex">
       <div id="map" style="width: 70vw; height: 100vh"></div>
 
@@ -45,11 +53,13 @@
           font-family: sans-serif;
         "
       >
-        <h3>Veuillez sélecter un site</h3>
+        <h3>Veuillez sélectionner un site</h3>
         <p>Cliquez sure un site pour voir sa description</p>
       </div>
     </div>
+
     <script>
+      // Map
       const bounds = L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180));
 
       const map = L.map("map", {
@@ -69,40 +79,62 @@
       ).addTo(map);
 
       // Icons
-      const defaultIcon = L.icon({
-        iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-        shadowUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+      const greenIcon = L.icon({
+        iconUrl: "/ressources/images/marker-green.png",
+
         iconSize: [25, 41],
-        iconAnchor: [12, 41],
+        iconAnchor: [25 / 2, 41],
+      });
+
+      const yellowIcon = L.icon({
+        iconUrl: "/ressources/images/marker-yellow.png",
+
+        iconSize: [25, 41],
+        iconAnchor: [25 / 2, 41],
+      });
+      const blueIcon = L.icon({
+        iconUrl: "/ressources/images/marker-blue.png",
+
+        iconSize: [25, 41],
+        iconAnchor: [25 / 2, 41],
       });
 
       const selectedIcon = L.icon({
-        iconUrl:
-          "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-        shadowUrl:
-          "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-        iconSize: [30, 50],
-        iconAnchor: [15, 50],
+        iconUrl: "/ressources/images/marker-red.png",
+
+        iconSize: [25, 41],
+        iconAnchor: [25 / 2, 41],
       });
 
       // Markers
       const markersCluster = L.markerClusterGroup();
+      const allMarkers = [];
       let activeMarker = null;
 
       fetch("./ressources/data/world-heritage-list.json")
         .then((r) => r.json())
         .then((data) => {
-          // Create a cluster
-          const markersCluster = L.markerClusterGroup();
-          const allMarkers = [];
-
           data.forEach((site) => {
-            const marker = L.marker(
+            let chosenIcon;
+
+            if (site.category == "Natural") {
+              chosenIcon = greenIcon;
+            } else if (site.category == "Cultural") {
+              chosenIcon = yellowIcon;
+            } else {
+              chosenIcon = blueIcon;
+            }
+
+            let marker = L.marker(
               [site.coordinates.lat, site.coordinates.lon],
-              { title: site.site },
-              { icon: defaultIcon}
+              {
+                icon: chosenIcon,
+                title: site.site,
+              },
             );
+
+            marker.originalIcon = chosenIcon;
+
             const panelContent = `
               <h2>${site.site}</h2>
               <small style="color: gray">${site.category}</small>
@@ -112,13 +144,19 @@
                 Ajouter en tant que visité
               </button>
             `;
+
             marker.on("click", () => {
               // Update side panel
               document.getElementById("info-panel").innerHTML = panelContent;
+
               // Reset previous marker
               if (activeMarker && activeMarker !== marker) {
-                activeMarker.setIcon(defaultIcon);
+                activeMarker.setIcon(activeMarker.originalIcon);
               }
+
+              // Set active marker
+              marker.setIcon(selectedIcon);
+              activeMarker = marker;
 
               // Focus map
               markersCluster.zoomToShowLayer(marker, () => {
@@ -131,13 +169,18 @@
             markersCluster.addLayer(marker);
           });
           map.addLayer(markersCluster);
-          var searchBar = L.control
+
+          L.control
             .pinSearch({
               position: "topright",
               placeholder: "Search...",
               buttonText: "Search",
               layerToSearch: markersCluster,
               onSearch: function (query) {
+                if (!query) {
+                  return;
+                }
+
                 const marker = allMarkers.find((m) =>
                   m.options.title.toLowerCase().includes(query.toLowerCase()),
                 );
@@ -148,7 +191,8 @@
                 }
 
                 markersCluster.zoomToShowLayer(marker, function () {
-                  marker.openPopup();
+                  marker.fire("click");
+                  animate: true;
                 });
               },
               searchBarWidth: "200px",
@@ -156,11 +200,11 @@
               maxSearchResults: 10,
             })
             .addTo(map);
-        })
-        // Clear selection on click
+        });
+      // Clear selection on click
       map.on("click", () => {
         if (activeMarker) {
-          activeMarker.setIcon(defaultIcon);
+          activeMarker.setIcon(activeMarker.originalIcon);
           activeMarker = null;
         }
 

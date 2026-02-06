@@ -1,1 +1,7 @@
 #map { height: 400px; width: 400px; }
+.leaflet-control-pinsearch:not(:hover) .search-results {
+    display: none !important;
+}
+.leaflet-control-pinsearch .search-results{
+    top: 100% !important;
+}
