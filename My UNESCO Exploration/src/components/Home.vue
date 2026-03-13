@@ -1,15 +1,73 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
-import { onMounted } from 'vue'
-declare const L: any
+import { onMounted, ref, computed } from 'vue'
 
-onMounted(() => {
-  if (typeof L === 'undefined') {
-    console.error("Leaflet n'est pas chargé. Vérifie ton fichier index.html.")
+declare const L: any
+//recherche de l'utilisateur
+const searchQuery = ref('')
+//liest des sites unesco
+const sitesList = ref<any[]>([])
+
+//recherche intelligente
+const filteredSites = computed(() => {
+  if (searchQuery.value.length < 2) return []
+
+  //suggère seulement les 5 premiers sites
+  return sitesList.value
+    .filter((site) => site.site.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    .slice(0, 5)
+})
+
+//highlight de la recherche utilisateur
+const highlightMatch = (text: string) => {
+  if (!searchQuery.value) return text
+
+  //regex pour ne pas avoir d'erreurs à cause des caractères spéciaux
+  const safeQuery = searchQuery.value.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&')
+  const regex = new RegExp(`(${safeQuery})`, 'gi')
+
+  return text.replace(regex, '<span class="highlight-blue">$1</span>')
+}
+
+//variables leaflet
+let map: any = null
+let markerCluster: any = null
+let markers: any[] = []
+let markerSelected: any = null
+
+//recherche
+const submitSearch = () => {
+  if (!searchQuery.value) return
+
+  const marker = markers.find((m) =>
+    m.options.title.toLowerCase().includes(searchQuery.value.toLowerCase()),
+  )
+
+  if (!marker) {
+    alert('Aucun résultat trouvé')
     return
   }
 
-  const map = L.map('map', {
+  markerCluster.zoomToShowLayer(marker, () => {
+    marker.fire('click')
+    map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true })
+  })
+
+  searchQuery.value = ''
+}
+
+const selectSite = (siteName: string) => {
+  searchQuery.value = siteName
+  submitSearch()
+}
+
+onMounted(() => {
+  if (typeof L === 'undefined') {
+    console.error("Leaflet n'est pas chargé.")
+    return
+  }
+
+  map = L.map('map', {
     center: [20, 0],
     zoom: 2,
     minZoom: 2,
@@ -19,49 +77,44 @@ onMounted(() => {
 
   L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    {
-      attribution: 'Tiles © Esri — Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye',
-    },
+    { attribution: 'Tiles © Esri — Source: Esri' },
   ).addTo(map)
 
   const pinNatural = L.icon({
     iconUrl: '/ressources/images/marker-green.png',
     iconSize: [25, 41],
-    iconAnchor: [25 / 2, 41],
+    iconAnchor: [12.5, 41],
   })
   const pinCultural = L.icon({
     iconUrl: '/ressources/images/marker-yellow.png',
     iconSize: [25, 41],
-    iconAnchor: [25 / 2, 41],
+    iconAnchor: [12.5, 41],
   })
   const pinMixed = L.icon({
     iconUrl: '/ressources/images/marker-blue.png',
     iconSize: [25, 41],
-    iconAnchor: [25 / 2, 41],
+    iconAnchor: [12.5, 41],
   })
   const pinSelected = L.icon({
     iconUrl: '/ressources/images/marker-red.png',
     iconSize: [25, 41],
-    iconAnchor: [25 / 2, 41],
+    iconAnchor: [12.5, 41],
   })
 
-  const markerCluster = L.markerClusterGroup()
-  const markers = []
-  let markerSelected = null
+  markerCluster = L.markerClusterGroup()
 
   fetch('/ressources/data/world-heritage-list.json')
     .then((result) => result.json())
     .then((data) => {
-      data.forEach((site) => {
-        let pinChosen
-        if (site.category == 'Natural') {
-          pinChosen = pinNatural
-        } else if (site.category == 'Cultural') {
-          pinChosen = pinCultural
-        } else {
-          pinChosen = pinMixed
-        }
+      sitesList.value = data
 
+      data.forEach((site: any) => {
+        let pinChosen =
+          site.category == 'Natural'
+            ? pinNatural
+            : site.category == 'Cultural'
+              ? pinCultural
+              : pinMixed
         let marker = L.marker([site.coordinates.lat, site.coordinates.lon], {
           icon: pinChosen,
           title: site.site,
@@ -70,69 +123,27 @@ onMounted(() => {
         marker.originalIcon = pinChosen
         marker.category = site.category
 
-        const panelContent = `
-          <h2>${site.site}</h2>
-          <small style="color: gray">${site.category}</small>
-          <hr />
-          <p>${site.short_description}</p>
-          <button style="padding: 12px">Marquer comme visité</button>
-        `
-
         marker.on('click', () => {
-          document.getElementById('info-panel').innerHTML = panelContent
-
-          if (markerSelected && markerSelected !== marker) {
+          document.getElementById('info-panel')!.innerHTML = `
+            <h2>${site.site}</h2>
+            <small style="color: gray">${site.category}</small>
+            <hr />
+            <p>${site.short_description}</p>
+            <button style="padding: 12px">Marquer comme visité</button>
+          `
+          if (markerSelected && markerSelected !== marker)
             markerSelected.setIcon(markerSelected.originalIcon)
-          }
-
           marker.setIcon(pinSelected)
           markerSelected = marker
-
-          markerCluster.zoomToShowLayer(marker, () => {
-            map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), {
-              animate: true,
-            })
-          })
+          markerCluster.zoomToShowLayer(marker, () =>
+            map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true }),
+          )
         })
 
         markerCluster.addLayer(marker)
         markers.push(marker)
       })
-
       map.addLayer(markerCluster)
-
-      L.control
-        .pinSearch({
-          position: 'topright',
-          placeholder: 'Recherche...',
-          buttonText: 'Recherche',
-          layerToSearch: markerCluster,
-          onSearch: function (query) {
-            if (query == undefined || query == null) {
-              return
-            }
-
-            const marker = markers.find((m) =>
-              m.options.title.toLowerCase().includes(query.toLowerCase()),
-            )
-
-            if (!marker) {
-              alert('Aucun résultat')
-              return
-            }
-
-            markerCluster.zoomToShowLayer(marker, function () {
-              marker.fire('click')
-              map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), {
-                animate: true,
-              })
-            })
-          },
-          searchBarWidth: '200px',
-          searchBarHeight: '30px',
-          maxSearchResults: 10,
-        })
-        .addTo(map)
     })
 
   map.on('click', () => {
@@ -140,36 +151,25 @@ onMounted(() => {
       markerSelected.setIcon(markerSelected.originalIcon)
       markerSelected = null
     }
-
-    document.getElementById('info-panel').innerHTML = `
-      <h3>Veuillez sélectionner un site</h3>
-      <p>Cliquez sur un site pour voir sa description</p>
-    `
+    document.getElementById('info-panel')!.innerHTML =
+      `<h3>Veuillez sélectionner un site</h3><p>Cliquez sur un site pour voir sa description</p>`
   })
 
   const filterSelect = document.getElementById('filter-category')
-
   if (filterSelect) {
     filterSelect.addEventListener('change', (e) => {
       const selectedCategory = (e.target as HTMLSelectElement).value
-
       markerCluster.clearLayers()
-
       markers.forEach((marker) => {
-        if (selectedCategory === 'all' || marker.category === selectedCategory) {
+        if (selectedCategory === 'all' || marker.category === selectedCategory)
           markerCluster.addLayer(marker)
-        }
       })
-
       if (markerSelected) {
         markerSelected.setIcon(markerSelected.originalIcon)
         markerSelected = null
       }
-
-      document.getElementById('info-panel').innerHTML = `
-        <h3>Veuillez sélectionner un site</h3>
-        <p>Cliquez sur un site pour voir sa description</p>
-      `
+      document.getElementById('info-panel')!.innerHTML =
+        `<h3>Veuillez sélectionner un site</h3><p>Cliquez sur un site pour voir sa description</p>`
     })
   }
 })
@@ -179,19 +179,24 @@ onMounted(() => {
   <div class="page-container">
     <header>
       <img src="../assets/BSI_Logo.png" height="50" />
-      <search>
-        <form action="/search/" class="search-form">
-          <input
-            type="search"
-            id="search"
-            name="search-bar"
-            placeholder="Rechercher..."
-            class="search-input"
-          />
+      <search class="search-container">
+        <form @submit.prevent="submitSearch" class="search-form">
           <button type="submit" class="search-btn">
             <img src="../assets/loupeBG.png" alt="loupe" height="23" />
           </button>
+          <input
+            type="search"
+            v-model="searchQuery"
+            placeholder="Rechercher un site..."
+            class="search-input"
+          />
         </form>
+
+        <ul v-if="filteredSites.length > 0" class="suggestions-list">
+          <li v-for="site in filteredSites" :key="site.site" @click="selectSite(site.site)">
+            <span v-html="highlightMatch(site.site)"></span>
+          </li>
+        </ul>
       </search>
       <nav>
         <ul>
@@ -263,6 +268,7 @@ header {
   background-color: var(--color-background-soft);
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
+  background-color: #5d5b4e;
 }
 
 .search-form {
@@ -274,6 +280,7 @@ header {
   padding: 0.3rem 0.5rem 0.3rem 1.2rem;
   width: 600px;
   transition: border-color 0.2s;
+  background-color: #dfe2db;
 }
 
 .search-form:focus-within {
@@ -326,10 +333,10 @@ li {
   border-radius: 50px;
   transition: all 0.2s ease;
   display: inline-block;
+  background-color: #dfe2db;
 }
 
 .nav-btn:hover {
-  background-color: var(--color-border);
   color: rgb(255, 0, 0);
 }
 
@@ -352,20 +359,22 @@ li {
   transition: color 0.2s;
   text-transform: uppercase;
   font-size: 0.9rem;
+  color: #000;
 }
 
 .lang:hover {
-  color: rgb(255, 0, 0);
+  color: rgb(255, 255, 255);
 }
 
 .lang.active {
   font-weight: bold;
-  color: rgb(255, 0, 0);
+  color: rgb(255, 255, 255);
 }
 
 .separator {
   color: var(--color-border-hover);
   cursor: default;
+  color: black;
 }
 
 .profile-menu {
@@ -379,10 +388,11 @@ li {
   height: 45px;
   color: var(--color-text);
   transition: color 0.2s ease;
+  color: #131212;
 }
 
 .profile-icon:hover {
-  color: rgb(255, 0, 0);
+  color: rgb(255, 255, 255);
 }
 
 .search-input::-webkit-search-cancel-button {
@@ -434,5 +444,119 @@ li {
 
 #info-panel {
   margin-top: 1rem;
+}
+
+.search-container {
+  position: relative;
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 100%;
+  background-color: var(--color-background-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.suggestions-list li {
+  padding: 0.8rem 1.2rem;
+  cursor: pointer;
+  color: var(--color-text);
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.suggestions-list li:last-child {
+  border-bottom: none;
+}
+
+:deep(.highlight-blue) {
+  color: #007bff;
+  font-weight: 500;
+  display: inline;
+}
+
+.suggestions-list li:hover {
+  background-color: var(--color-background-mute);
+  font-weight: 900 !important;
+}
+
+.suggestions-list li:hover * {
+  font-weight: 620 !important;
+}
+
+.suggestions-list li:hover :deep(.highlight-blue) {
+  color: #007bff !important;
+}
+
+@media (max-width: 768px) {
+  header {
+    flex-wrap: wrap;
+    padding: 0.5rem 1rem;
+    gap: 0.5rem;
+  }
+
+  header > img {
+    height: 28px;
+  }
+
+  .right-actions {
+    margin-left: auto;
+    gap: 1rem;
+  }
+
+  .search-container {
+    order: 3;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .search-form {
+    width: 100%;
+  }
+
+  nav {
+    order: 4;
+    width: 100%;
+    margin-top: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+
+  li {
+    gap: 0.5rem;
+  }
+
+  .nav-btn {
+    padding: 0.3rem 0.8rem;
+    font-size: 0.85rem;
+  }
+
+  .map-layout {
+    flex-direction: column;
+  }
+
+  .map-container {
+    height: 65vh;
+    flex-grow: 0;
+  }
+
+  .side-panel {
+    width: 100%;
+    min-width: 100%;
+    height: auto;
+    padding: 1rem;
+    border-left: none;
+    border-top: 1px solid var(--color-border);
+  }
 }
 </style>
