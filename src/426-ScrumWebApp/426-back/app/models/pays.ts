@@ -13,9 +13,11 @@ export default class Pays extends BaseModel {
   declare nom: string
 
   @manyToMany(() => Site, {
-    pivotTable: 't_appartenir_a',
-    pivotForeignKey: 'pays_fk',
-    pivotRelatedForeignKey: 'site_fk',
+    pivotTable: 'appartenir_a',
+    localKey: 'id',
+    pivotForeignKey: 'pays_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'site_id',
   })
   declare sites: ManyToMany<typeof Site>
 

@@ -10,11 +10,9 @@ export default class Region extends BaseModel {
   declare id: number
 
   @column()
-  declare label: string
+  declare label: string | null
 
-  @hasMany(() => Site, {
-    foreignKey: 'regionId',
-  })
+  @hasMany(() => Site, { foreignKey: 'regionFk' })
   declare sites: HasMany<typeof Site>
 
   @column.dateTime({ autoCreate: true })

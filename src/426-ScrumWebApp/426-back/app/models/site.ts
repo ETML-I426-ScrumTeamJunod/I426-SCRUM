@@ -1,8 +1,16 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, belongsTo, manyToMany } from '@adonisjs/lucid/orm'
-import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, belongsTo, manyToMany, hasMany } from '@adonisjs/lucid/orm'
+import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Region from '#models/region'
 import Pays from '#models/pays'
+import User from './user.ts'
+import SiteTraduction from './site_traduction.ts'
+
+export enum SiteCategorie {
+  Natural = 'Natural',
+  Cultural = 'Cultural',
+  Mixed = 'Mixed',
+}
 
 export default class Site extends BaseModel {
   public static table = 't_site'
@@ -11,13 +19,7 @@ export default class Site extends BaseModel {
   declare id: number
 
   @column()
-  declare nom: string
-
-  @column()
-  declare categorie: string
-
-  @column()
-  declare description: string
+  declare categorie: SiteCategorie
 
   @column()
   declare longitude: number
@@ -25,23 +27,43 @@ export default class Site extends BaseModel {
   @column()
   declare latitude: number
 
-  @column()
-  declare lien_image: string
+  @column({ columnName: 'lien_image' })
+  declare lienImage: string | null
 
-  /* FK vers Region */
-  @column({ columnName: 'region_fk' })
+  @column()
   declare regionId: number
 
-  @belongsTo(() => Region, {
-    foreignKey: 'regionId',
-  })
+  @belongsTo(() => Region, { foreignKey: 'regionId' })
   declare region: BelongsTo<typeof Region>
 
-  /* Relation many-to-many avec Pays */
+  @hasMany(() => SiteTraduction, { foreignKey: 'siteId' })
+  declare traductions: HasMany<typeof SiteTraduction>
+
+  @manyToMany(() => User, {
+    pivotTable: 'user_site_deja_visite',
+    localKey: 'id',
+    pivotForeignKey: 'site_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'user_id',
+  })
+  declare usersVisited: ManyToMany<typeof User>
+
+  @manyToMany(() => User, {
+    pivotTable: 'user_site_a_visiter',
+    localKey: 'id',
+    pivotForeignKey: 'site_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'user_id',
+    pivotColumns: ['couleur'],
+  })
+  declare usersWishlist: ManyToMany<typeof User>
+
   @manyToMany(() => Pays, {
-    pivotTable: 't_appartenir_a',
-    pivotForeignKey: 'site_fk',
-    pivotRelatedForeignKey: 'pays_fk',
+    pivotTable: 'appartenir_a',
+    localKey: 'id',
+    pivotForeignKey: 'site_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'pays_id',
   })
   declare pays: ManyToMany<typeof Pays>
 
