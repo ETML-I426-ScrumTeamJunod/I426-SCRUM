@@ -176,82 +176,59 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- <div class="page-container"> -->
-  <!-- <header>
-      <img src="../assets/BSI_Logo.png" height="50" />
-      <search class="search-container">
-        <form @submit.prevent="submitSearch" class="search-form">
-          <button type="submit" class="search-btn">
-            <img src="../assets/loupeBG.png" alt="loupe" height="23" />
-          </button>
-          <input
-            type="search"
-            v-model="searchQuery"
-            placeholder="Rechercher un site..."
-            class="search-input"
+  <header>
+    <img src="../assets/BSI_Logo.png" height="50" />
+    <search class="search-container">
+      <form @submit.prevent="submitSearch" class="search-form">
+        <button type="submit" class="search-btn">
+          <img src="../assets/loupeBG.png" alt="loupe" height="23" />
+        </button>
+        <input
+          type="search"
+          v-model="searchQuery"
+          placeholder="Rechercher un site..."
+          class="search-input"
+        />
+      </form>
+
+      <ul v-if="filteredSites.length > 0" class="suggestions-list">
+        <li v-for="site in filteredSites" :key="site.site" @click="selectSite(site.site)">
+          <span v-html="highlightMatch(site.site)"></span>
+        </li>
+      </ul>
+    </search>
+    <nav>
+      <ul>
+        <li>
+          <RouterLink to="/home" class="nav-btn">Accueil</RouterLink>
+          <RouterLink to="/stats" class="nav-btn">Stats</RouterLink>
+          <RouterLink to="/list" class="nav-btn">Listes</RouterLink>
+          <RouterLink to="/about" class="nav-btn">A propos</RouterLink>
+        </li>
+      </ul>
+    </nav>
+    <div class="right-actions">
+      <div class="lang-switch">
+        <span class="lang active">fr</span>
+        <span class="separator">|</span>
+        <span class="lang">en</span>
+      </div>
+      <div class="profile-menu">
+        <svg
+          class="profile-icon"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 6C13.66 6 15 7.34 15 9C15 10.66 13.66 12 12 12C10.34 12 9 10.66 9 9C9 7.34 10.34 6 12 6ZM12 20.2C9.5 20.2 7.29 18.92 6 16.98C6.03 14.99 10 13.9 12 13.9C13.99 13.9 17.97 14.99 18 16.98C16.71 18.92 14.5 20.2 12 20.2Z"
+            fill="currentColor"
           />
-        </form>
-
-        <ul v-if="filteredSites.length > 0" class="suggestions-list">
-          <li v-for="site in filteredSites" :key="site.site" @click="selectSite(site.site)">
-            <span v-html="highlightMatch(site.site)"></span>
-          </li>
-        </ul>
-      </search>
-      <nav>
-        <ul>
-          <li>
-            <RouterLink to="/home" class="nav-btn">Accueil</RouterLink>
-            <RouterLink to="/stats" class="nav-btn">Stats</RouterLink>
-            <RouterLink to="/list" class="nav-btn">Listes</RouterLink>
-            <RouterLink to="/about" class="nav-btn">A propos</RouterLink>
-          </li>
-        </ul>
-      </nav>
-      <div class="right-actions">
-        <div class="lang-switch">
-          <span class="lang active">fr</span>
-          <span class="separator">|</span>
-          <span class="lang">en</span>
-        </div>
-        <div class="profile-menu">
-          <svg
-            class="profile-icon"
-            viewBox="0 0 24 24"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 6C13.66 6 15 7.34 15 9C15 10.66 13.66 12 12 12C10.34 12 9 10.66 9 9C9 7.34 10.34 6 12 6ZM12 20.2C9.5 20.2 7.29 18.92 6 16.98C6.03 14.99 10 13.9 12 13.9C13.99 13.9 17.97 14.99 18 16.98C16.71 18.92 14.5 20.2 12 20.2Z"
-              fill="currentColor"
-            />
-          </svg>
-        </div>
+        </svg>
       </div>
-    </header> -->
-
-  <main class="map-layout">
-    <div id="map" class="map-container"></div>
-
-    <aside class="side-panel">
-      <div class="filter-box">
-        <label for="filter-category" class="filter-label">Filtrer par catégorie :</label>
-        <select id="filter-category" class="filter-select">
-          <option value="all">Tous les sites</option>
-          <option value="Natural">Naturel</option>
-          <option value="Cultural">Culturel</option>
-          <option value="Mixed">Mixte</option>
-        </select>
-      </div>
-      <div id="info-panel">
-        <h3>Veuillez sélectionner un site</h3>
-        <p>Cliquez sur un site pour voir sa description</p>
-      </div>
-    </aside>
-  </main>
-  <!-- </div> -->
+    </div>
+  </header>
 </template>
-
 <style scoped>
 .page-container {
   display: flex;
