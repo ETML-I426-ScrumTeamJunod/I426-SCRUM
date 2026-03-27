@@ -1,3 +1,4 @@
+@ -1,563 +1,563 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { onMounted, ref, computed } from 'vue'
@@ -176,8 +177,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <!-- <div class="page-container"> -->
-  <!-- <header>
+  <div class="page-container">
+    <header>
       <img src="../assets/BSI_Logo.png" height="50" />
       <search class="search-container">
         <form @submit.prevent="submitSearch" class="search-form">
@@ -228,28 +229,28 @@ onMounted(() => {
           </svg>
         </div>
       </div>
-    </header> -->
+    </header>
 
-  <main class="map-layout">
-    <div id="map" class="map-container"></div>
+    <main class="map-layout">
+      <div id="map" class="map-container"></div>
 
-    <aside class="side-panel">
-      <div class="filter-box">
-        <label for="filter-category" class="filter-label">Filtrer par catégorie :</label>
-        <select id="filter-category" class="filter-select">
-          <option value="all">Tous les sites</option>
-          <option value="Natural">Naturel</option>
-          <option value="Cultural">Culturel</option>
-          <option value="Mixed">Mixte</option>
-        </select>
-      </div>
-      <div id="info-panel">
-        <h3>Veuillez sélectionner un site</h3>
-        <p>Cliquez sur un site pour voir sa description</p>
-      </div>
-    </aside>
-  </main>
-  <!-- </div> -->
+      <aside class="side-panel">
+        <div class="filter-box">
+          <label for="filter-category" class="filter-label">Filtrer par catégorie :</label>
+          <select id="filter-category" class="filter-select">
+            <option value="all">Tous les sites</option>
+            <option value="Natural">Naturel</option>
+            <option value="Cultural">Culturel</option>
+            <option value="Mixed">Mixte</option>
+          </select>
+        </div>
+        <div id="info-panel">
+          <h3>Veuillez sélectionner un site</h3>
+          <p>Cliquez sur un site pour voir sa description</p>
+        </div>
+      </aside>
+    </main>
+  </div>
 </template>
 
 <style scoped>

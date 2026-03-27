@@ -6,9 +6,9 @@ import Header from './views/partials/Header.vue'
 
 <template>
   <div class="page-container">
-    <Header></Header>
+    <!-- <Header></Header> -->
     <div class="app">
-      <Home />
+      <RouterView />
     </div>
   </div>
 </template>
