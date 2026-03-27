@@ -8,8 +8,16 @@ export default class NewAccountController {
   }
 
   async store({ request, response, auth }: HttpContext) {
-    const payload = await request.validateUsing(signupValidator)
-    const user = await User.create({ ...payload })
+    const { nom, email, motDePasse } = await request.validateUsing(signupValidator)
+
+    if (!email || !motDePasse) {
+      return response.status(400).json({ error: "Email et mot de passe requis" });
+    }
+    const user = await User.create({
+    nom: nom,
+    email: email,
+    motDePasse: motDePasse,
+    })
 
     await auth.use('web').login(user)
     response.redirect().toRoute('home')

@@ -12,11 +12,11 @@ import { Form } from '@adonisjs/inertia/vue'
     <div>
       <Form route="new_account.store" #default="{ processing, errors }">
         <div>
-          <label for="fullName">Full name</label>
+          <label for="nom">Full name</label>
           <input
             type="text"
-            name="fullName"
-            id="fullName"
+            name="nom"
+            id="nom"
             :data-invalid="errors.fullName ? 'true' : undefined"
           />
           <div v-if="errors.fullName">{{ errors.fullName }}</div>
@@ -35,10 +35,10 @@ import { Form } from '@adonisjs/inertia/vue'
         </div>
 
         <div>
-          <label for="password">Password</label>
+          <label for="motDePasse">Password</label>
           <input
             type="password"
-            name="password"
+            name="motDePasse"
             id="password"
             autocomplete="new-password"
             :data-invalid="errors.password ? 'true' : undefined"

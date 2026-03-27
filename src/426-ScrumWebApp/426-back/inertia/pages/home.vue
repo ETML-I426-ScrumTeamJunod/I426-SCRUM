@@ -5,6 +5,7 @@ declare const L: any
 const lang = ref('fr')
 const props = defineProps<{
   sites: any[]
+  nom?: string
 }>()
 
 // Reactive state
@@ -179,7 +180,20 @@ onUnmounted(() => {
             <Link href="/" class="nav-btn">Accueil</Link>
             <Link href="/stats" class="nav-btn">Stats</Link>
             <Link href="/list" class="nav-btn">Listes</Link>
-            <Link href="/about" class="nav-btn">À propos</Link>
+            <li v-if="nom">
+              <span>{{ nom }}</span>
+              <Link 
+                href="/user/logout" 
+                method="post" 
+                as="button" 
+                class="nav-btn logout-style"
+              >
+                Déconnexion
+              </Link>
+            </li>
+            <li v-else>
+              <Link href="/user/login" class="nav-btn">Connexion</Link>
+            </li>
           </li>
         </ul>
       </nav>

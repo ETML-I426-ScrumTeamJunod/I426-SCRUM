@@ -21,6 +21,8 @@ async function fetchAllRecords() {
 
     all.push(...data.results)
     
+    break
+    
     offset += limit
   }
 

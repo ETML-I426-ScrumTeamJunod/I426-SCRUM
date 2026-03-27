@@ -4,6 +4,7 @@ import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { BaseModel, column, manyToMany } from '@adonisjs/lucid/orm'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
 import Site from '#models/site'
+import { DateTime } from 'luxon'
 
 export default class User extends compose(
   BaseModel,
@@ -46,13 +47,9 @@ export default class User extends compose(
   })
   declare wishSites: ManyToMany<typeof Site>
 
-  get initials() {
-    const [first, last] = this.nom ? this.nom.split(' ') : this.email.split('@')
-
-    if (first && last) {
-      return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase()
-    }
-
-    return `${first.slice(0, 2)}`.toUpperCase()
-  }
+  @column.dateTime({ autoCreate: true })
+    declare createdAt: DateTime
+  
+    @column.dateTime({ autoCreate: true, autoUpdate: true })
+    declare updatedAt: DateTime
 }

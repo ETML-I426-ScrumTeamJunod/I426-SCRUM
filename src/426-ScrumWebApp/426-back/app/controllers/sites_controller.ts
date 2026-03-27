@@ -5,11 +5,12 @@ export default class SitesController {
   /**
    * Display a list of resource
    */
-  async index({ inertia }: HttpContext) {
+  async index({ auth, inertia }: HttpContext) {
     const allSites = await Site.all()
-
+    const user = auth.user
     return inertia.render('home', {
       sites: allSites.map((s) => s.serialize()),
+      nom: user?.nom
     })
   }
 

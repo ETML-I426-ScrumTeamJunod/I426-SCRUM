@@ -19,6 +19,18 @@ export interface Registry {
       errorResponse: unknown
     }
   }
+  'details': {
+    methods: ["GET","HEAD"]
+    pattern: '/sites/:id/details'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: unknown
+      errorResponse: unknown
+    }
+  }
   'stats': {
     methods: ["GET","HEAD"]
     pattern: '/stats'
@@ -43,33 +55,9 @@ export interface Registry {
       errorResponse: unknown
     }
   }
-  'about': {
-    methods: ["GET","HEAD"]
-    pattern: '/about'
-    types: {
-      body: {}
-      paramsTuple: []
-      params: {}
-      query: {}
-      response: unknown
-      errorResponse: unknown
-    }
-  }
-  'details': {
-    methods: ["GET","HEAD"]
-    pattern: '/sites/:id/details'
-    types: {
-      body: {}
-      paramsTuple: [ParamValue]
-      params: { id: ParamValue }
-      query: {}
-      response: unknown
-      errorResponse: unknown
-    }
-  }
   'new_account.create': {
     methods: ["GET","HEAD"]
-    pattern: '/signup'
+    pattern: '/user/signup'
     types: {
       body: {}
       paramsTuple: []
@@ -81,7 +69,7 @@ export interface Registry {
   }
   'new_account.store': {
     methods: ["POST"]
-    pattern: '/signup'
+    pattern: '/user/signup'
     types: {
       body: ExtractBody<InferInput<(typeof import('#validators/user').signupValidator)>>
       paramsTuple: []
@@ -93,7 +81,7 @@ export interface Registry {
   }
   'session.create': {
     methods: ["GET","HEAD"]
-    pattern: '/login'
+    pattern: '/user/login'
     types: {
       body: {}
       paramsTuple: []
@@ -105,7 +93,7 @@ export interface Registry {
   }
   'session.store': {
     methods: ["POST"]
-    pattern: '/login'
+    pattern: '/user/login'
     types: {
       body: {}
       paramsTuple: []
