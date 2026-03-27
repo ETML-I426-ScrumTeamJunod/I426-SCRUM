@@ -32,11 +32,22 @@ const highlightMatch = (text: string) => {
   return text.replace(regex, '<span class="highlight-blue">$1</span>')
 }
 
+const isFilterOpen = ref(false)
+
+const setCategory = (category: string) => {
+  const filterSelect = document.getElementById('filter-category') as HTMLSelectElement
+  if (filterSelect) {
+    filterSelect.value = category
+    filterSelect.dispatchEvent(new Event('change'))
+  }
+  isFilterOpen.value = false
+}
+
 //variables leaflet
 let map: any = null
 let markerCluster: any = null
 let markers: any[] = []
-let markerSelected: any = null
+const markerSelected = ref<any>(null)
 
 //recherche
 const submitSearch = () => {
@@ -127,22 +138,30 @@ onMounted(() => {
         marker.category = site.category
 
         marker.on('click', () => {
-          document.getElementById('info-panel')!.innerHTML = `
-            <h2>${site.site}</h2>
-            <small style="color: gray">${site.category}</small>
-            <hr />
-            <p>${site.short_description}</p>
-            <button style="padding: 12px">Marquer comme visité</button>
-          `
-          if (markerSelected && markerSelected !== marker)
-            markerSelected.setIcon(markerSelected.originalIcon)
+          if (markerSelected.value && markerSelected.value !== marker) {
+            markerSelected.value.setIcon(markerSelected.value.originalIcon)
+          }
+
+          markerSelected.value = marker
           marker.setIcon(pinSelected)
-          markerSelected = marker
+
+          const panel = document.getElementById('info-panel')
+          if (panel) {
+            panel.innerHTML = `
+              <div class="site-details">
+                <h2>${site.site}</h2>
+                <p class="site-category"><strong>Catégorie :</strong> ${site.category}</p>
+                <p class="site-location"><strong>Pays :</strong> ${site.states}</p>
+                <hr />
+                <p class="site-description">${site.short_description}</p>
+              </div>
+            `
+          }
+
           markerCluster.zoomToShowLayer(marker, () =>
             map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true }),
           )
         })
-
         markerCluster.addLayer(marker)
         markers.push(marker)
       })
@@ -167,9 +186,9 @@ if (siteToFocus) {
     })
 
   map.on('click', () => {
-    if (markerSelected) {
-      markerSelected.setIcon(markerSelected.originalIcon)
-      markerSelected = null
+    if (markerSelected.value) {
+      markerSelected.value.setIcon(markerSelected.value.originalIcon)
+      markerSelected.value = null
     }
     document.getElementById('info-panel')!.innerHTML =
       `<h3>Veuillez sélectionner un site</h3><p>Cliquez sur un site pour voir sa description</p>`
@@ -185,8 +204,8 @@ if (siteToFocus) {
           markerCluster.addLayer(marker)
       })
       if (markerSelected) {
-        markerSelected.setIcon(markerSelected.originalIcon)
-        markerSelected = null
+        markerSelected.value.setIcon(markerSelected.value.originalIcon)
+        markerSelected.value = null
       }
       document.getElementById('info-panel')!.innerHTML =
         `<h3>Veuillez sélectionner un site</h3><p>Cliquez sur un site pour voir sa description</p>`
@@ -201,16 +220,33 @@ if (siteToFocus) {
       <img src="../assets/BSI_Logo.png" height="50" />
       <search class="search-container">
         <form @submit.prevent="submitSearch" class="search-form">
-          <button type="submit" class="search-btn">
-            <img src="../assets/loupeBG.png" alt="loupe" height="23" />
+          <button
+            type="button"
+            class="filter-toggle-btn"
+            @click.stop="isFilterOpen = !isFilterOpen"
+          >
+            <img src="../assets/filter-icon.png" alt="filtre" height="20" />
           </button>
+
           <input
             type="search"
             v-model="searchQuery"
+            @focus="isFilterOpen = false"
             placeholder="Rechercher un site..."
             class="search-input"
           />
+
+          <button type="submit" class="search-btn">
+            <img src="../assets/loupeBG.png" alt="loupe" height="23" />
+          </button>
         </form>
+
+        <div v-if="isFilterOpen" class="filter-dropdown">
+          <div @click="setCategory('all')" class="filter-item">Tous les sites</div>
+          <div @click="setCategory('Natural')" class="filter-item">Naturel</div>
+          <div @click="setCategory('Cultural')" class="filter-item">Culturel</div>
+          <div @click="setCategory('Mixed')" class="filter-item">Mixte</div>
+        </div>
 
         <ul v-if="filteredSites.length > 0" class="suggestions-list">
           <li v-for="site in filteredSites" :key="site.site" @click="selectSite(site.site)">
@@ -253,7 +289,7 @@ if (siteToFocus) {
     <main class="map-layout">
       <div id="map" class="map-container"></div>
 
-      <aside class="side-panel">
+      <aside v-show="markerSelected" class="side-panel">
         <div class="filter-box">
           <label for="filter-category" class="filter-label">Filtrer par catégorie :</label>
           <select id="filter-category" class="filter-select">
@@ -263,10 +299,7 @@ if (siteToFocus) {
             <option value="Mixed">Mixte</option>
           </select>
         </div>
-        <div id="info-panel">
-          <h3>Veuillez sélectionner un site</h3>
-          <p>Cliquez sur un site pour voir sa description</p>
-        </div>
+        <div id="info-panel"></div>
       </aside>
     </main>
   </div>
@@ -294,13 +327,58 @@ header {
 .search-form {
   display: flex;
   align-items: center;
-  background-color: var(--color-background-mute);
+  background-color: #dfe2db;
   border: 1px solid var(--color-border);
   border-radius: 50px;
-  padding: 0.3rem 0.5rem 0.3rem 1.2rem;
+  padding: 0.3rem 0.5rem 0.3rem 0.5rem;
   width: 600px;
   transition: border-color 0.2s;
-  background-color: #dfe2db;
+  position: relative;
+}
+
+.filter-toggle-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-right: 1px solid rgba(0, 0, 0, 0.1);
+  margin-right: 8px;
+  transition: transform 0.2s;
+}
+
+.filter-toggle-btn:hover {
+  transform: scale(1.1);
+}
+
+.filter-dropdown {
+  position: absolute;
+  top: 115%;
+  left: 0;
+  width: 220px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.filter-item {
+  padding: 12px 16px;
+  color: #333;
+  cursor: pointer;
+  font-size: 0.9rem;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.filter-item:hover {
+  background-color: #f0f0f0;
+  color: #007bff;
+  padding-left: 22px;
 }
 
 .search-form:focus-within {
@@ -443,9 +521,7 @@ li {
 }
 
 .filter-box {
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--color-border);
+  display: none;
 }
 
 .filter-label {
