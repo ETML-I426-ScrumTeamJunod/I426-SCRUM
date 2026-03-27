@@ -83,7 +83,6 @@ const setCategory = (category: string) => {
           <RouterLink to="/" class="nav-btn">Accueil</RouterLink>
           <RouterLink to="/stats" class="nav-btn">Stats</RouterLink>
           <RouterLink to="/wishlist" class="nav-btn">Listes</RouterLink>
-          <RouterLink to="/about" class="nav-btn">A propos</RouterLink>
         </li>
       </ul>
     </nav>

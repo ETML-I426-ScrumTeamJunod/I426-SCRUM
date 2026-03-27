@@ -107,6 +107,7 @@ const handleLogin = () => {
   width: 100%;
   background-color: #30322e;
   color: white;
+  height: 100%;
 }
 
 .flex {
