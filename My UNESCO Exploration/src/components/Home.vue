@@ -1,15 +1,46 @@
-@ -1,563 +1,563 @@
 <script setup lang="ts">
-import { RouterLink, useRoute } from 'vue-router'
-import { onMounted, ref, computed } from 'vue'
-
-const route = useRoute()
+import { RouterLink } from 'vue-router'
+import { onMounted, ref, computed, inject, watch } from 'vue'
 
 declare const L: any
-//recherche de l'utilisateur
-const searchQuery = ref('')
+
 //liest des sites unesco
 const sitesList = ref<any[]>([])
+
+//recherche de l'utilisateur
+const { searchQuery, selectedCategory, searchTrigger } = inject('searchState') as any
+
+watch(selectedCategory, (newCat) => {
+  if (!markerCluster) return
+  markerCluster.clearLayers()
+  markers.forEach((marker) => {
+    if (newCat === 'all' || marker.category === newCat) {
+      markerCluster.addLayer(marker)
+    }
+  })
+
+  if (markerSelected.value) {
+    markerSelected.value.setIcon(markerSelected.value.originalIcon)
+    markerSelected.value = null
+  }
+  const panel = document.getElementById('info-panel')
+  if (panel) panel.innerHTML = `<h3>Veuillez sélectionner un site</h3>`
+})
+
+watch(searchTrigger, () => {
+  if (!searchQuery.value || markers.length === 0) return
+
+  const marker = markers.find((m) =>
+    m.options.title.toLowerCase().includes(searchQuery.value.toLowerCase()),
+  )
+
+  if (marker) {
+    markerCluster.zoomToShowLayer(marker, () => {
+      marker.fire('click')
+      map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true })
+    })
+  }
+})
 
 //recherche intelligente
 const filteredSites = computed(() => {
@@ -156,23 +187,6 @@ onMounted(() => {
         markers.push(marker)
       })
       map.addLayer(markerCluster)
-
-      const siteToFocus = route.query.focus
-
-      if (siteToFocus) {
-        // 2. On cherche le marqueur qui a exactement ce titre
-        // (C'est pour ça que "title: site.site" dans ton L.marker était très important !)
-        const targetMarker = markers.find((m) => m.options.title === siteToFocus)
-
-        if (targetMarker) {
-          // 3. On demande au plugin Cluster d'ouvrir les groupes pour montrer ce marqueur
-          markerCluster.zoomToShowLayer(targetMarker, () => {
-            // 4. Une fois ouvert, on simule un clic sur le marqueur
-            // Cela va déclencher ton code : panneau latéral, icône rouge, etc.
-            targetMarker.fire('click')
-          })
-        }
-      }
     })
 
   map.on('click', () => {
@@ -240,207 +254,18 @@ onMounted(() => {
 </template>
 
 <style scoped>
-.page-container {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-header {
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 4rem;
-  padding: 1rem 2rem;
-  background-color: var(--color-background-soft);
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-  background-color: #5d5b4e;
-}
-
-.search-form {
-  display: flex;
-  align-items: center;
-  background-color: #dfe2db;
-  border: 1px solid var(--color-border);
-  border-radius: 50px;
-  padding: 0.3rem 0.5rem 0.3rem 0.5rem;
-  width: 600px;
-  transition: border-color 0.2s;
-  position: relative;
-}
-
-.filter-toggle-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 10px;
-  border-right: 1px solid rgba(0, 0, 0, 0.1);
-  margin-right: 8px;
-  transition: transform 0.2s;
-}
-
-.filter-toggle-btn:hover {
-  transform: scale(1.1);
-}
-
-.filter-dropdown {
-  position: absolute;
-  top: 115%;
-  left: 0;
-  width: 220px;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
-  z-index: 2000;
-  overflow: hidden;
-  border: 1px solid var(--color-border);
-}
-
-.filter-item {
-  padding: 12px 16px;
-  color: #333;
-  cursor: pointer;
-  font-size: 0.9rem;
-  text-align: left;
-  transition: all 0.2s;
-}
-
-.filter-item:hover {
-  background-color: #f0f0f0;
-  color: #007bff;
-  padding-left: 22px;
-}
-
-.search-form:focus-within {
-  border-color: var(--color-text);
-}
-
-.search-input {
-  border: none;
-  background: transparent;
-  outline: none;
-  color: var(--color-text);
-  flex-grow: 1;
-  font-size: 0.95rem;
-}
-
-.search-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 1.1rem;
-  padding: 0.2rem 0.5rem;
-  display: flex;
-  align-items: center;
-}
-
-nav {
-  margin: 0 auto;
-}
-
-ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-li {
-  display: flex;
-  gap: 2.5rem;
-}
-
-.nav-btn {
-  text-decoration: none;
-  background-color: var(--color-background-mute);
-  border: 1px solid var(--color-border);
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--color-text);
-  cursor: pointer;
-  padding: 0.5rem 1.5rem;
-  border-radius: 50px;
-  transition: all 0.2s ease;
-  display: inline-block;
-  background-color: #dfe2db;
-}
-
-.nav-btn:hover {
-  color: rgb(255, 0, 0);
-}
-
-.right-actions {
-  display: flex;
-  align-items: center;
-  gap: 2rem;
-}
-
-.lang-switch {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 500;
-  color: var(--color-text);
-}
-
-.lang {
-  cursor: pointer;
-  transition: color 0.2s;
-  text-transform: uppercase;
-  font-size: 0.9rem;
-  color: #000;
-}
-
-.lang:hover {
-  color: rgb(255, 255, 255);
-}
-
-.lang.active {
-  font-weight: bold;
-  color: rgb(255, 255, 255);
-}
-
-.separator {
-  color: var(--color-border-hover);
-  cursor: default;
-  color: black;
-}
-
-.profile-menu {
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-}
-
-.profile-icon {
-  width: 45px;
-  height: 45px;
-  color: var(--color-text);
-  transition: color 0.2s ease;
-  color: #131212;
-}
-
-.profile-icon:hover {
-  color: rgb(255, 255, 255);
-}
-
-.search-input::-webkit-search-cancel-button {
-  cursor: pointer;
-  transform: scale(1.5);
-}
-
 .map-layout {
   display: flex;
-  flex-grow: 1;
-  overflow: hidden;
+  flex: 1;
+  width: 100%;
+  height: calc(100vh - 80px);
+  position: relative;
 }
 
 .map-container {
   flex-grow: 1;
   height: 100%;
+  z-index: 1;
 }
 
 .side-panel {
@@ -452,125 +277,33 @@ li {
   overflow-y: auto;
   font-family: sans-serif;
   color: var(--color-text);
+  z-index: 2;
 }
 
 .filter-box {
   display: none;
 }
 
-.filter-label {
-  font-weight: bold;
-}
-
-.filter-select {
-  width: 100%;
-  margin-top: 8px;
-  padding: 8px;
-  border-radius: 4px;
-  border: 1px solid var(--color-border);
-  background-color: var(--color-background);
-  color: var(--color-text);
-}
-
 #info-panel {
   margin-top: 1rem;
 }
 
-.search-container {
-  position: relative;
+:deep(.site-details h2) {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
 }
 
-.suggestions-list {
-  position: absolute;
-  top: 110%;
-  left: 0;
-  width: 100%;
-  background-color: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  overflow: hidden;
+:deep(.site-category) {
+  font-weight: bold;
+  color: #666;
 }
 
-.suggestions-list li {
-  padding: 0.8rem 1.2rem;
-  cursor: pointer;
-  color: var(--color-text);
-  border-bottom: 1px solid var(--color-border);
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
-
-.suggestions-list li:last-child {
-  border-bottom: none;
-}
-
-:deep(.highlight-blue) {
-  color: #007bff;
-  font-weight: 500;
-  display: inline;
-}
-
-.suggestions-list li:hover {
-  background-color: var(--color-background-mute);
-  font-weight: 900 !important;
-}
-
-.suggestions-list li:hover * {
-  font-weight: 620 !important;
-}
-
-.suggestions-list li:hover :deep(.highlight-blue) {
-  color: #007bff !important;
+:deep(.site-description) {
+  margin-top: 10px;
+  line-height: 1.5;
 }
 
 @media (max-width: 768px) {
-  header {
-    flex-wrap: wrap;
-    padding: 0.5rem 1rem;
-    gap: 0.5rem;
-  }
-
-  header > img {
-    height: 28px;
-  }
-
-  .right-actions {
-    margin-left: auto;
-    gap: 1rem;
-  }
-
-  .search-container {
-    order: 3;
-    width: 100%;
-    margin-top: 0.5rem;
-  }
-
-  .search-form {
-    width: 100%;
-  }
-
-  nav {
-    order: 4;
-    width: 100%;
-    margin-top: 0.5rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-  }
-
-  li {
-    gap: 0.5rem;
-  }
-
-  .nav-btn {
-    padding: 0.3rem 0.8rem;
-    font-size: 0.85rem;
-  }
-
   .map-layout {
     flex-direction: column;
   }
