@@ -79,7 +79,7 @@ let map: any = null
 let markerCluster: any = null
 let markers: any[] = []
 const markerSelected = ref<any>(null)
-let currentSite = null
+const currentSite = ref<any>(null)
 
 //recherche
 const submitSearch = () => {
@@ -177,7 +177,7 @@ onMounted(() => {
           markerSelected.value = marker
           marker.setIcon(pinSelected)
 
-          currentSite = site
+          currentSite.value = site
 
           markerCluster.zoomToShowLayer(marker, () =>
             map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true }),
@@ -194,7 +194,7 @@ onMounted(() => {
       markerSelected.value.setIcon(markerSelected.value.originalIcon)
       markerSelected.value = null
     }
-    currentSite = null
+    currentSite.value = null
   })
 
   const filterSelect = document.getElementById('filter-category')
@@ -210,7 +210,7 @@ onMounted(() => {
         markerSelected.value.setIcon(markerSelected.value.originalIcon)
         markerSelected.value = null
       }
-      currentSite = null
+      currentSite.value = null
     })
   }
 })
@@ -240,10 +240,22 @@ onMounted(() => {
             <hr />
             <p class="site-description">{{ currentSite?.short_description || '' }}</p>
             <button>
-              {{ currentSite ? (currentSite.InWishlist ? 'Supprimer de ma liste' : 'Ajouter à ma liste') : '' }}
+              {{
+                currentSite
+                  ? currentSite.InWishlist
+                    ? 'Supprimer de ma liste'
+                    : 'Ajouter à ma liste'
+                  : ''
+              }}
             </button>
             <button>
-              {{ currentSite ? (currentSite.Visited ? 'Marquer comme non-visité' : 'Marquer comme visité') : '' }}
+              {{
+                currentSite
+                  ? currentSite.Visited
+                    ? 'Marquer comme non-visité'
+                    : 'Marquer comme visité'
+                  : ''
+              }}
             </button>
           </div>
         </div>
@@ -253,17 +265,20 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.page-container {
+  overflow-y: hidden;
+  height: 100%;
+}
+
 .map-layout {
   display: flex;
   flex: 1;
   width: 100%;
-  height: calc(100vh - 80px);
   position: relative;
 }
 
 .map-container {
   flex-grow: 1;
-  height: 100%;
   z-index: 1;
 }
 
