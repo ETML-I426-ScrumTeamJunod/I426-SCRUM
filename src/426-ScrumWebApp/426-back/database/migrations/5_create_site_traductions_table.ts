@@ -1,7 +1,7 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {
-  protected tableName = 'site_traductions'
+  protected tableName = 't_site_traduction'
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
@@ -9,7 +9,7 @@ export default class extends BaseSchema {
 
       table.string('code_langue', 2).nullable()
       table.string('nom', 256).notNullable()
-      table.string('description', 2048).notNullable()
+      table.string('description', 4096).notNullable()
       table.string('image_alt', 64).nullable()
 
       table
@@ -17,7 +17,7 @@ export default class extends BaseSchema {
         .unsigned()
         .notNullable()
         .references('id')
-        .inTable('site')
+        .inTable('t_site')
         .onDelete('CASCADE')
         .onUpdate('CASCADE')
 

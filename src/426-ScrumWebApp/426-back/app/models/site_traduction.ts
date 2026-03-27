@@ -1,6 +1,7 @@
+import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
-import Site from './site.js'
+import Site from '#models/site'
 
 export default class SiteTraduction extends BaseModel {
   public static table = 't_site_traduction'
@@ -25,4 +26,10 @@ export default class SiteTraduction extends BaseModel {
 
   @belongsTo(() => Site, { foreignKey: 'siteId' })
   declare site: BelongsTo<typeof Site>
+
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
 }

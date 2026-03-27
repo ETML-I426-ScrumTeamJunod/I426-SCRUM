@@ -3,8 +3,8 @@ import { BaseModel, column, belongsTo, manyToMany, hasMany } from '@adonisjs/luc
 import type { BelongsTo, HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Region from '#models/region'
 import Pays from '#models/pays'
-import User from './user.ts'
-import SiteTraduction from './site_traduction.ts'
+import User from '#models/user'
+import SiteTraduction from '#models/site_traduction'
 
 export enum SiteCategorie {
   Natural = 'Natural',
@@ -40,7 +40,7 @@ export default class Site extends BaseModel {
   declare traductions: HasMany<typeof SiteTraduction>
 
   @manyToMany(() => User, {
-    pivotTable: 'user_site_deja_visite',
+    pivotTable: 't_user_site_deja_visite',
     localKey: 'id',
     pivotForeignKey: 'site_id',
     relatedKey: 'id',
@@ -49,7 +49,7 @@ export default class Site extends BaseModel {
   declare usersVisited: ManyToMany<typeof User>
 
   @manyToMany(() => User, {
-    pivotTable: 'user_site_a_visiter',
+    pivotTable: 't_user_site_a_visiter',
     localKey: 'id',
     pivotForeignKey: 'site_id',
     relatedKey: 'id',
@@ -59,7 +59,7 @@ export default class Site extends BaseModel {
   declare usersWishlist: ManyToMany<typeof User>
 
   @manyToMany(() => Pays, {
-    pivotTable: 'appartenir_a',
+    pivotTable: 't_appartenir_a',
     localKey: 'id',
     pivotForeignKey: 'site_id',
     relatedKey: 'id',

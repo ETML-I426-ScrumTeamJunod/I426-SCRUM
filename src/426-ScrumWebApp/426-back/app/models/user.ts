@@ -3,7 +3,7 @@ import { compose } from '@adonisjs/core/helpers'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import { BaseModel, column, manyToMany } from '@adonisjs/lucid/orm'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
-import Site from './site.js'
+import Site from '#models/site'
 
 export default class User extends compose(
   BaseModel,
@@ -28,7 +28,7 @@ export default class User extends compose(
 
   // Relations
   @manyToMany(() => Site, {
-    pivotTable: 'user_site_deja_visite',
+    pivotTable: 't_user_site_deja_visite',
     localKey: 'id',
     pivotForeignKey: 'user_id',
     relatedKey: 'id',
@@ -37,7 +37,7 @@ export default class User extends compose(
   declare visitedSites: ManyToMany<typeof Site>
 
   @manyToMany(() => Site, {
-    pivotTable: 'user_site_a_visiters',
+    pivotTable: 't_user_site_a_visiter',
     localKey: 'id',
     pivotForeignKey: 'user_id',
     relatedKey: 'id',

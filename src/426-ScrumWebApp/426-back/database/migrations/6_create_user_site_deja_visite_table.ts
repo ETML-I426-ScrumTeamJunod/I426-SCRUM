@@ -1,18 +1,16 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {
-  protected tableName = 'user_site_a_visiters'
+  protected tableName = 't_user_site_deja_visite'
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
-      table.increments('id')
-
       table
         .integer('user_id')
         .unsigned()
         .notNullable()
         .references('id')
-        .inTable('user')
+        .inTable('t_user')
         .onDelete('CASCADE')
         .onUpdate('CASCADE')
 
@@ -21,11 +19,9 @@ export default class extends BaseSchema {
         .unsigned()
         .notNullable()
         .references('id')
-        .inTable('site')
+        .inTable('t_site')
         .onDelete('CASCADE')
         .onUpdate('CASCADE')
-
-      table.string('couleur', 50).nullable()
 
       table.primary(['user_id', 'site_id'])
 

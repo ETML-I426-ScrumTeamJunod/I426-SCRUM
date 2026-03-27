@@ -1,7 +1,7 @@
 import { BaseSchema } from '@adonisjs/lucid/schema'
 
 export default class extends BaseSchema {
-  protected tableName = 'sites'
+  protected tableName = 't_site'
 
   async up() {
     this.schema.createTable(this.tableName, (table) => {
@@ -13,10 +13,10 @@ export default class extends BaseSchema {
       table.string('lien_image', 128).nullable()
 
       table
-        .integer('region_fk')
+        .integer('region_id')
         .unsigned()
         .notNullable()
-        .references('region_id')
+        .references('id')
         .inTable('t_region')
         .onDelete('CASCADE')
         .onUpdate('CASCADE')
