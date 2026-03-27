@@ -10,7 +10,7 @@ export default class extends BaseSchema {
       table.string('code_langue', 2).nullable()
       table.string('nom', 256).notNullable()
       table.string('description', 4096).notNullable()
-      table.string('image_alt', 64).nullable()
+      table.string('image_alt', 1024).nullable()
 
       table
         .integer('site_id')

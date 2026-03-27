@@ -20,7 +20,7 @@ async function fetchAllRecords() {
     if (!data.results || data.results.length === 0) break
 
     all.push(...data.results)
-
+    
     offset += limit
   }
 
@@ -66,7 +66,7 @@ export default class extends BaseSeeder {
         {
           nom: nameEn,
           description: descEn,
-          imageAlt: item.main_caption_en,
+          imageAlt: item.main_image_caption_en,
         }
       )
 
@@ -98,7 +98,7 @@ export default class extends BaseSeeder {
         {
           nom: nameFr,
           description: descFr,
-          imageAlt: item.main_caption_fr || item.main_caption_en,
+          imageAlt: item.main_image_caption_fr || item.main_image_caption_en,
         }
       )
     }
