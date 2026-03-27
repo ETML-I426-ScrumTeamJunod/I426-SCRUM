@@ -306,9 +306,6 @@ const graphPercentageByTypeOfSite = {
 </script>
 
 <template>
-  <header>
-    <Header></Header>
-  </header>
   <main>
     <h1>Bonjour {{ user }}</h1>
     <div id="statistics">
