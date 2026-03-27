@@ -38,7 +38,6 @@ provide('searchState', {
 }
 
 .app {
-  display: flex;
   flex-grow: 1;
   overflow: hidden;
 }

@@ -114,9 +114,9 @@ onMounted(() => {
 
   map = L.map('map', {
     center: [20, 0],
-    zoom: 2,
-    minZoom: 2,
-    maxBounds: L.latLngBounds(L.latLng(-85, -180), L.latLng(85, 180)),
+    zoom: 3,
+    minZoom: 3,
+    maxBounds: L.latLngBounds(L.latLng(-95, -190), L.latLng(95, 190)),
     maxBoundsViscosity: 1.0,
   })
 
@@ -216,7 +216,6 @@ onMounted(() => {
   <div class="page-container">
     <main class="map-layout">
       <div id="map" class="map-container"></div>
-
       <aside v-show="markerSelected" class="side-panel">
         <div class="filter-box">
           <label for="filter-category" class="filter-label">Filtrer par catégorie :</label>
