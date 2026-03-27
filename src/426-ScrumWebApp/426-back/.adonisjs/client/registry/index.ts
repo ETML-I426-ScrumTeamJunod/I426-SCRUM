@@ -12,6 +12,24 @@ const routes = {
     tokens: [{"old":"/","type":0,"val":"/","end":""}],
     types: placeholder as Registry['home']['types'],
   },
+  'stats': {
+    methods: ["GET","HEAD"],
+    pattern: '/stats',
+    tokens: [{"old":"/stats","type":0,"val":"stats","end":""}],
+    types: placeholder as Registry['stats']['types'],
+  },
+  'list': {
+    methods: ["GET","HEAD"],
+    pattern: '/list',
+    tokens: [{"old":"/list","type":0,"val":"list","end":""}],
+    types: placeholder as Registry['list']['types'],
+  },
+  'about': {
+    methods: ["GET","HEAD"],
+    pattern: '/about',
+    tokens: [{"old":"/about","type":0,"val":"about","end":""}],
+    types: placeholder as Registry['about']['types'],
+  },
   'new_account.create': {
     methods: ["GET","HEAD"],
     pattern: '/signup',
