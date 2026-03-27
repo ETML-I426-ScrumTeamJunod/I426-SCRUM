@@ -1,7 +1,9 @@
 @ -1,563 +1,563 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { onMounted, ref, computed } from 'vue'
+
+const route = useRoute()
 
 declare const L: any
 //recherche de l'utilisateur
@@ -145,6 +147,23 @@ onMounted(() => {
         markers.push(marker)
       })
       map.addLayer(markerCluster)
+
+      const siteToFocus = route.query.focus
+
+if (siteToFocus) {
+  // 2. On cherche le marqueur qui a exactement ce titre
+  // (C'est pour ça que "title: site.site" dans ton L.marker était très important !)
+  const targetMarker = markers.find(m => m.options.title === siteToFocus)
+
+  if (targetMarker) {
+    // 3. On demande au plugin Cluster d'ouvrir les groupes pour montrer ce marqueur
+    markerCluster.zoomToShowLayer(targetMarker, () => {
+      // 4. Une fois ouvert, on simule un clic sur le marqueur
+      // Cela va déclencher ton code : panneau latéral, icône rouge, etc.
+      targetMarker.fire('click')
+    })
+  }
+}
     })
 
   map.on('click', () => {
@@ -204,7 +223,7 @@ onMounted(() => {
           <li>
             <RouterLink to="/home" class="nav-btn">Accueil</RouterLink>
             <RouterLink to="/stats" class="nav-btn">Stats</RouterLink>
-            <RouterLink to="/list" class="nav-btn">Listes</RouterLink>
+            <RouterLink to="/wishlist" class="nav-btn">Listes</RouterLink>
             <RouterLink to="/about" class="nav-btn">A propos</RouterLink>
           </li>
         </ul>
