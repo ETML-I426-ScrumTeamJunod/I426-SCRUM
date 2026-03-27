@@ -24,9 +24,9 @@ const router = createRouter({
       component: () => import('../views/WishList.vue'),
     },
     {
-      path: '/stat',
-      name: 'stat',
-      component: () => import('../views/Stat.vue'),
+      path: '/stats',
+      name: 'stats',
+      component: () => import('../views/Stats.vue'),
     },
   ],
 })
