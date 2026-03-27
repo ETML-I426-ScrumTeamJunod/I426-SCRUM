@@ -10,12 +10,13 @@
 import { middleware } from '#start/kernel'
 import { controllers } from '#generated/controllers'
 import router from '@adonisjs/core/services/router'
+import SitesController from '#controllers/sites_controller'
 
-router.on('/').renderInertia('home', {}).as('home')
+router.get('/', [SitesController, 'index']).as('home')
 router.on('/stats').renderInertia('stats', {}).as('stats')
 router.on('/list').renderInertia('list', {}).as('list')
 router.on('/about').renderInertia('about', {}).as('about')
-
+router.get('/sites/:id/details', [SitesController, 'getDetails']).as('details')
 router
   .group(() => {
     router.get('signup', [controllers.NewAccount, 'create'])

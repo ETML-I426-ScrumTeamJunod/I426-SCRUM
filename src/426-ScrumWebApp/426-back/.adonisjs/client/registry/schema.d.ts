@@ -55,6 +55,18 @@ export interface Registry {
       errorResponse: unknown
     }
   }
+  'details': {
+    methods: ["GET","HEAD"]
+    pattern: '/sites/:id/details'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: unknown
+      errorResponse: unknown
+    }
+  }
   'new_account.create': {
     methods: ["GET","HEAD"]
     pattern: '/signup'

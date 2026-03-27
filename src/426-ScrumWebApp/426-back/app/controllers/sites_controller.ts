@@ -1,35 +1,33 @@
+import Site from '#models/site'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class SitesController {
   /**
    * Display a list of resource
    */
-  async index({}: HttpContext) {}
+  async index({ inertia }: HttpContext) {
+    const allSites = await Site.all()
 
-  /**
-   * Display form to create a new record
-   */
-  async create({}: HttpContext) {}
+    return inertia.render('home', {
+      sites: allSites.map((s) => s.serialize()),
+    })
+  }
 
-  /**
-   * Handle form submission for the create action
-   */
-  async store({ request }: HttpContext) {}
+  public async getDetails({ params, response, request }: HttpContext) {
+    const language = request.input('lang', 'en')
+    
+    const site = await Site.query()
+      .where('id', params.id)
+      .preload('traductions', (query) => {
+        query.where('code_langue', language)
+      })
+      .first()
 
-  /**
-   * Show individual record
-   */
-  async show({ params }: HttpContext) {}
-
-  /**
-   * Edit individual record
-   */
-  async edit({ params }: HttpContext) {}
-
-  /**
-   * Handle form submission for the edit action
-   */
-  async update({ params, request }: HttpContext) {}
+    return {
+      nom: site?.traductions[0].nom,
+      description: site?.traductions[0].description,
+    }
+  }
 
   /**
    * Delete record

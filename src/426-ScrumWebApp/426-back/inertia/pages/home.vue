@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { Link } from '@adonisjs/inertia/vue'
 import { onMounted, onUnmounted, ref } from 'vue'
-
-// Leaflet imports
+declare const L: any
+const lang = ref('fr')
+const props = defineProps<{
+  sites: any[]
+}>()
 
 // Reactive state
 const selectedSite = ref<any>(null)
@@ -59,25 +62,32 @@ onMounted(async () => {
   markerCluster.value = L.markerClusterGroup()
 
   try {
-    const response = await fetch('/ressources/data/world-heritage-list.json')
-    const data: any[] = await response.json()
-
-    data.forEach((site) => {
+    props.sites.forEach((site) => {
       let pinChosen = pinMixed
-      if (site.category === 'Natural') pinChosen = pinNatural
-      else if (site.category === 'Cultural') pinChosen = pinCultural
+      if (site.categorie === 'Natural') pinChosen = pinNatural
+      else if (site.categorie === 'Cultural') pinChosen = pinCultural
 
-      const marker = L.marker([site.coordinates.lat, site.coordinates.lon], {
+      const marker = L.marker([site.latitude, site.longitude], {
         icon: pinChosen,
-        title: site.site,
+        title: 'temp',
       }) as any
 
       marker.originalIcon = pinChosen
-      marker.category = site.category
+      marker.category = site.categorie
       marker.siteData = site
 
-      marker.on('click', () => {
-        selectedSite.value = marker.siteData
+      marker.on('click', async () => {
+        try {
+          const response = await fetch(`/sites/${site.id}/details?lang=${lang.value}`)
+          const details = await response.json()
+          selectedSite.value = {
+            ...site,
+            nom: details.nom,
+            description: details.description,
+          }
+        } catch (error) {
+          console.error('Erreur lors du chargement des détails:', error)
+        }
 
         if (currentSelectedMarker.value && currentSelectedMarker.value !== marker) {
           currentSelectedMarker.value.setIcon(currentSelectedMarker.value.originalIcon)
@@ -207,10 +217,10 @@ onUnmounted(() => {
 
         <div class="info-panel">
           <template v-if="selectedSite">
-            <h2>{{ selectedSite.site }}</h2>
-            <small style="color: gray">{{ selectedSite.category }}</small>
+            <h2>{{ selectedSite.nom }}</h2>
+            <small style="color: gray">{{ selectedSite.categorie }}</small>
             <hr />
-            <p>{{ selectedSite.short_description }}</p>
+            <p>{{ selectedSite.description }}</p>
             <button style="padding: 12px">Marquer comme visité</button>
           </template>
 

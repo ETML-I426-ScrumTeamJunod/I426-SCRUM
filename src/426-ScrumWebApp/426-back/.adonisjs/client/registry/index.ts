@@ -30,6 +30,12 @@ const routes = {
     tokens: [{"old":"/about","type":0,"val":"about","end":""}],
     types: placeholder as Registry['about']['types'],
   },
+  'details': {
+    methods: ["GET","HEAD"],
+    pattern: '/sites/:id/details',
+    tokens: [{"old":"/sites/:id/details","type":0,"val":"sites","end":""},{"old":"/sites/:id/details","type":1,"val":"id","end":""},{"old":"/sites/:id/details","type":0,"val":"details","end":""}],
+    types: placeholder as Registry['details']['types'],
+  },
   'new_account.create': {
     methods: ["GET","HEAD"],
     pattern: '/signup',

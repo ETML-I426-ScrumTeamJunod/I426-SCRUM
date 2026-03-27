@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { Link } from '@adonisjs/inertia/vue'
 import { onMounted } from 'vue'
 declare const L: any
 
