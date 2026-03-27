@@ -34,11 +34,10 @@ provide('searchState', {
   flex-direction: column;
   height: 100vh;
   width: 100vw;
-  overflow: hidden;
 }
 
 .app {
   flex-grow: 1;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 </style>

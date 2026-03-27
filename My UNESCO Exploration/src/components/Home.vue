@@ -79,6 +79,7 @@ let map: any = null
 let markerCluster: any = null
 let markers: any[] = []
 const markerSelected = ref<any>(null)
+let currentSite = null
 
 //recherche
 const submitSearch = () => {
@@ -176,18 +177,7 @@ onMounted(() => {
           markerSelected.value = marker
           marker.setIcon(pinSelected)
 
-          const panel = document.getElementById('info-panel')
-          if (panel) {
-            panel.innerHTML = `
-              <div class="site-details">
-                <h2>${site.site}</h2>
-                <p class="site-category"><strong>Catégorie :</strong> ${site.category}</p>
-                <p class="site-location"><strong>Pays :</strong> ${site.states}</p>
-                <hr />
-                <p class="site-description">${site.short_description}</p>
-              </div>
-            `
-          }
+          currentSite = site
 
           markerCluster.zoomToShowLayer(marker, () =>
             map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true }),
@@ -204,11 +194,25 @@ onMounted(() => {
       markerSelected.value.setIcon(markerSelected.value.originalIcon)
       markerSelected.value = null
     }
-    const panel = document.getElementById('info-panel')
-    if (panel) {
-      panel.innerHTML = `<h3>Veuillez sélectionner un site</h3><p>Cliquez sur un site pour voir sa description</p>`
-    }
+    currentSite = null
   })
+
+  const filterSelect = document.getElementById('filter-category')
+  if (filterSelect) {
+    filterSelect.addEventListener('change', (e) => {
+      const selectedCategory = (e.target as HTMLSelectElement).value
+      markerCluster.clearLayers()
+      markers.forEach((marker) => {
+        if (selectedCategory === 'all' || marker.category === selectedCategory)
+          markerCluster.addLayer(marker)
+      })
+      if (markerSelected) {
+        markerSelected.value.setIcon(markerSelected.value.originalIcon)
+        markerSelected.value = null
+      }
+      currentSite = null
+    })
+  }
 })
 </script>
 
@@ -226,7 +230,23 @@ onMounted(() => {
             <option value="Mixed">Mixte</option>
           </select>
         </div>
-        <div id="info-panel"></div>
+        <div id="info-panel">
+          <div class="site-details">
+            <h2>{{ currentSite?.site || '' }}</h2>
+            <p class="site-category">
+              <strong>Catégorie :</strong> {{ currentSite?.category || '' }}
+            </p>
+            <p class="site-location"><strong>Pays :</strong> {{ currentSite?.states || '' }}</p>
+            <hr />
+            <p class="site-description">{{ currentSite?.short_description || '' }}</p>
+            <button>
+              {{ currentSite ? (currentSite.InWishlist ? 'Supprimer de ma liste' : 'Ajouter à ma liste') : '' }}
+            </button>
+            <button>
+              {{ currentSite ? (currentSite.Visited ? 'Marquer comme non-visité' : 'Marquer comme visité') : '' }}
+            </button>
+          </div>
+        </div>
       </aside>
     </main>
   </div>

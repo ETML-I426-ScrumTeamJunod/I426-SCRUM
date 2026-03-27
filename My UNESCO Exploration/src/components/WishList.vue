@@ -16,7 +16,21 @@ const sites = [
     categorie: 'Natural',
     description: 'This transboundary property...',
     lien_image: "/ressources/images/forests.png",
-    pays: "Ukraine",
+    pays: [
+      "Albania",
+      "Austria",
+      "Belgium",
+      "Bulgaria",
+      "Croatia",
+      "Germany",
+      "Italy",
+      "Romania",
+      "Slovakia",
+      "Slovenia",
+      "Spain",
+      "Ukraine"
+    ],
+    wishlist: true,
     visited: true,
   },
   {
@@ -25,7 +39,8 @@ const sites = [
     categorie: 'Natural',
     description: 'Jesuit Missions of the Guaranis...',
     lien_image: "/ressources/images/san-ignacio.png",
-    pays: "Argentine",
+    pays: ["Argentina", "Brazil"],
+    wishlist: true,
     visited: false,
   },
 ]
@@ -36,7 +51,6 @@ function getVisitedAmount() {
   sites.forEach((site) => {
     if (site.visited) visited++
   })
-
   return visited
 }
 </script>
@@ -45,13 +59,11 @@ function getVisitedAmount() {
   <div class="page-wrapper">
     <div class="content-container">
       <h1 class="welcome-title">Bonjour, {{ user.name }}!</h1>
-
       <section class="stats-card">
         <div class="stats-header">
           <h2 class="stats-main-title">Progression UNESCO</h2>
           <p class="stats-subtitle">Votre voyage autour du monde</p>
         </div>
-        
         <div class="progress-container">
           <progress :value="getVisitedAmount()" :max="sites.length" style="border-radius: 10px;"></progress>
           <div class="progress-info">
@@ -60,22 +72,34 @@ function getVisitedAmount() {
           </div>
         </div>
       </section>
-
       <h2 class="list-title">Votre Liste</h2>
-
-      <RouterLink to="/">
         <div class="sites-grid">
-        <div v-for="item in sites" :key="item.id" class="site-card">
-          <div class="image-box">
-            <img :src="item.lien_image" :alt="item.nom" />
-          </div>
-          <div class="site-details">
-            <h3>{{ item.nom }}</h3>
-            <p class="country-info">📍 {{ item.pays || 'Pays' }}</p>
+          <div v-for="item in sites" :key="item.id" class="site-card" v-show="!item.visited && item.wishlist">
+            <RouterLink to="/">
+              <div class="image-box">
+                <img :src="item.lien_image" :alt="item.nom" />
+              </div>
+              <div class="site-details">
+                <h3>{{ item.nom }}</h3>
+                📍<span class="country-info" v-for="value in item.pays"> {{ value + ', ' }}</span>
+              </div>
+            </RouterLink>
           </div>
         </div>
-      </div>
-      </RouterLink>
+        <h2 class="list-title">Sites visités</h2>
+        <div class="sites-grid">
+          <div v-for="item in sites" :key="item.id" class="site-card" v-show="item.visited">
+            <RouterLink to="/">
+              <div class="image-box">
+                <img :src="item.lien_image" :alt="item.nom" />
+              </div>
+              <div class="site-details">
+                <h3>{{ item.nom }}</h3>
+                📍<span class="country-info" v-for="value in item.pays"> {{ value + ', ' }}</span>
+              </div>
+            </RouterLink>
+          </div>
+        </div>
     </div>
   </div>
 </template>
