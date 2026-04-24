@@ -31,6 +31,18 @@ export interface Registry {
       errorResponse: unknown
     }
   }
+  'site.image': {
+    methods: ["GET","HEAD"]
+    pattern: '/sites/:id/image'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: unknown
+      errorResponse: unknown
+    }
+  }
   'stats': {
     methods: ["GET","HEAD"]
     pattern: '/stats'

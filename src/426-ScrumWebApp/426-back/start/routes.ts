@@ -15,8 +15,10 @@ import SitesController from '#controllers/sites_controller'
 router.get('/', [SitesController, 'index']).as('home')
 
 router.get('/sites/:id/details', [SitesController, 'getDetails']).as('details')
+router.get('/sites/:id/image', [SitesController, 'getImage']).as('site.image')
 
-router.group(() => {
+router
+  .group(() => {
     router.on('/stats').renderInertia('stats', {}).as('stats')
     router.on('/list').renderInertia('list', {}).as('list')
   })

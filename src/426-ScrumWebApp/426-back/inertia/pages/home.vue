@@ -81,10 +81,12 @@ onMounted(async () => {
         try {
           const response = await fetch(`/sites/${site.id}/details?lang=${lang.value}`)
           const details = await response.json()
+
           selectedSite.value = {
             ...site,
             nom: details.nom,
             description: details.description,
+            imageUrl: site.imageUrl,
           }
         } catch (error) {
           console.error('Erreur lors du chargement des détails:', error)
@@ -180,20 +182,15 @@ onUnmounted(() => {
             <Link href="/" class="nav-btn">Accueil</Link>
             <Link href="/stats" class="nav-btn">Stats</Link>
             <Link href="/list" class="nav-btn">Listes</Link>
-            <li v-if="nom">
-              <span>{{ nom }}</span>
-              <Link 
-                href="/user/logout" 
-                method="post" 
-                as="button" 
-                class="nav-btn logout-style"
-              >
-                Déconnexion
-              </Link>
-            </li>
-            <li v-else>
-              <Link href="/user/login" class="nav-btn">Connexion</Link>
-            </li>
+          </li>
+          <li v-if="nom">
+            <span>{{ nom }}</span>
+            <Link href="/user/logout" method="post" as="button" class="nav-btn logout-style">
+              Déconnexion
+            </Link>
+          </li>
+          <li v-else>
+            <Link href="/user/login" class="nav-btn">Connexion</Link>
           </li>
         </ul>
       </nav>
@@ -231,6 +228,7 @@ onUnmounted(() => {
 
         <div class="info-panel">
           <template v-if="selectedSite">
+            <img :src="selectedSite.imageUrl" :alt="selectedSite.nom" />
             <h2>{{ selectedSite.nom }}</h2>
             <small style="color: gray">{{ selectedSite.categorie }}</small>
             <hr />

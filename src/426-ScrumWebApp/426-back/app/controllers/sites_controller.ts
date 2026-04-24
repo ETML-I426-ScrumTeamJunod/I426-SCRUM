@@ -7,16 +7,31 @@ export default class SitesController {
    */
   async index({ auth, inertia }: HttpContext) {
     const allSites = await Site.all()
+
     const user = auth.user
     return inertia.render('home', {
-      sites: allSites.map((s) => s.serialize()),
-      nom: user?.nom
+      sites: allSites.map((s) => ({
+        ...s.serialize(),
+        imageUrl: s.imageBlob ? `/sites/${s.id}/image` : null,
+      })),
+      nom: user?.nom,
     })
+  }
+
+  public async getImage({ params, response }: HttpContext) {
+    const site = await Site.findOrFail(params.id)
+
+    if (!site.imageBlob) {
+      return response.notFound()
+    }
+
+    response.header('Content-Type', `image/${site.imageExtension || 'jpeg'}`)
+    response.send(site.imageBlob)
   }
 
   public async getDetails({ params, response, request }: HttpContext) {
     const language = request.input('lang', 'en')
-    
+
     const site = await Site.query()
       .where('id', params.id)
       .preload('traductions', (query) => {
@@ -24,14 +39,9 @@ export default class SitesController {
       })
       .first()
 
-    return {
+    response.ok({
       nom: site?.traductions[0].nom,
       description: site?.traductions[0].description,
-    }
+    })
   }
-
-  /**
-   * Delete record
-   */
-  async destroy({ params }: HttpContext) {}
 }

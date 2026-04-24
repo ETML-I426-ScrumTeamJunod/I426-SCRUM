@@ -18,6 +18,12 @@ const routes = {
     tokens: [{"old":"/sites/:id/details","type":0,"val":"sites","end":""},{"old":"/sites/:id/details","type":1,"val":"id","end":""},{"old":"/sites/:id/details","type":0,"val":"details","end":""}],
     types: placeholder as Registry['details']['types'],
   },
+  'site.image': {
+    methods: ["GET","HEAD"],
+    pattern: '/sites/:id/image',
+    tokens: [{"old":"/sites/:id/image","type":0,"val":"sites","end":""},{"old":"/sites/:id/image","type":1,"val":"id","end":""},{"old":"/sites/:id/image","type":0,"val":"image","end":""}],
+    types: placeholder as Registry['site.image']['types'],
+  },
   'stats': {
     methods: ["GET","HEAD"],
     pattern: '/stats',
