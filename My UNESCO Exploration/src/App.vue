@@ -40,4 +40,8 @@ provide('searchState', {
   flex-grow: 1;
   overflow-x: hidden;
 }
+
+@media (max-width: 768px) {
+
+}
 </style>
