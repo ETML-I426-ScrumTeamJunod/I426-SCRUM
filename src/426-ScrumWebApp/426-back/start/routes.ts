@@ -32,7 +32,6 @@ router
     router.get('login', [controllers.Session, 'create'])
     router.post('login', [controllers.Session, 'store'])
   })
-  .prefix('/user')
   .use(middleware.guest())
 
 router

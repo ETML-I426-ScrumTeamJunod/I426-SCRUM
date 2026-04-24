@@ -69,7 +69,7 @@ export interface Registry {
   }
   'new_account.create': {
     methods: ["GET","HEAD"]
-    pattern: '/user/signup'
+    pattern: '/signup'
     types: {
       body: {}
       paramsTuple: []
@@ -81,7 +81,7 @@ export interface Registry {
   }
   'new_account.store': {
     methods: ["POST"]
-    pattern: '/user/signup'
+    pattern: '/signup'
     types: {
       body: ExtractBody<InferInput<(typeof import('#validators/user').signupValidator)>>
       paramsTuple: []
@@ -93,7 +93,7 @@ export interface Registry {
   }
   'session.create': {
     methods: ["GET","HEAD"]
-    pattern: '/user/login'
+    pattern: '/login'
     types: {
       body: {}
       paramsTuple: []
@@ -105,7 +105,7 @@ export interface Registry {
   }
   'session.store': {
     methods: ["POST"]
-    pattern: '/user/login'
+    pattern: '/login'
     types: {
       body: {}
       paramsTuple: []

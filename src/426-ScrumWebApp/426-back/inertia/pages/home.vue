@@ -185,12 +185,12 @@ onUnmounted(() => {
           </li>
           <li v-if="nom">
             <span>{{ nom }}</span>
-            <Link href="/user/logout" method="post" as="button" class="nav-btn logout-style">
+            <Link href="/logout" method="post" as="button" class="nav-btn logout-style">
               Déconnexion
             </Link>
           </li>
           <li v-else>
-            <Link href="/user/login" class="nav-btn">Connexion</Link>
+            <Link href="/login" class="nav-btn">Connexion</Link>
           </li>
         </ul>
       </nav>
