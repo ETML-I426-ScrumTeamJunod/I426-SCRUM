@@ -41,9 +41,25 @@ const sites = [
     lien_image: '/ressources/images/san-ignacio.png',
     pays: ['Argentina', 'Brazil'],
     wishlist: true,
-    visited: false,
+    visited: true,
   },
 ]
+
+
+
+const visited_site = []
+
+const not_visited_site = []
+
+sites.forEach(element => {
+  if(element.visited == true)
+  {
+    visited_site.push(element)
+  }else 
+  {
+    not_visited_site.push(element)
+  }
+});
 
 function getVisitedAmount() {
   let visited = 0
@@ -86,12 +102,14 @@ function getVisitedAmount() {
       </section>
       <h2 class="list-title">Votre Liste</h2>
       <div class="sites-grid">
+        <p v-if="not_visited_site.length == 0" class="visited-or-not">Vous n'avez aucun site dans votre liste pour le moment</p>
         <div
           v-for="item in sites"
           :key="item.id"
           class="site-card"
           v-show="!item.visited && item.wishlist"
         >
+        
           <RouterLink to="/">
             <div class="image-box">
               <img :src="item.lien_image" :alt="item.nom" />
@@ -105,6 +123,7 @@ function getVisitedAmount() {
       </div>
       <h2 class="list-title">Sites visités</h2>
       <div class="sites-grid">
+        <p v-if="visited_site.length == 0" class="visited-or-not">Vous n'avez visité aucun site pour le moment </p>
         <div v-for="item in sites" :key="item.id" class="site-card" v-show="item.visited">
           <RouterLink to="/">
             <div class="image-box">
@@ -208,6 +227,8 @@ progress::-moz-progress-bar {
   line-height: 1;
 }
 
+
+
 /* --- Grille des sites (4 colonnes) --- */
 .sites-grid {
   display: grid;
@@ -267,6 +288,41 @@ progress::-moz-progress-bar {
   }
   .welcome-title {
     font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .welcome-title {
+    font-size: 33px;
+  }
+
+  .list-title {
+    font-size: 33px;
+    text-align: center;
+    margin-bottom: 5px;
+  }
+
+  .site-card {
+    margin-bottom: 20px;
+    width: 320px;
+  }
+
+  .stats-card {
+    margin-bottom: 40px;
+  }
+
+  .site-card {
+    justify-self: center;
+  }
+
+  .page-wrapper {
+    padding-top: 10px;
+  }
+
+  .visited-or-not {
+    color: rgb(181, 181, 181);
+    font-style: italic;
+    text-align: center;
   }
 }
 </style>

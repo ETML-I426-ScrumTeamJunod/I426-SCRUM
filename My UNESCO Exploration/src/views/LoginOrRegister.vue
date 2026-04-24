@@ -209,4 +209,16 @@ button:hover {
   text-align: center;
   display: block;
 }
+
+@media (max-width: 768px) {
+  .flex h1 {
+    font-size: 33px;
+  }
+
+  .login-container {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+  }
+}
 </style>
