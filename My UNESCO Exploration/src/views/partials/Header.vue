@@ -45,7 +45,7 @@ const setCategory = (category: string) => {
 <template>
   <header>
     <img src="../../assets/BSI_Logo.png" height="50" />
-    <search class="search-container">
+    <search v-if="$route.path === '/'" class="search-container">
       <form @submit.prevent="submitSearch" class="search-form">
         <button type="button" class="filter-toggle-btn" @click.stop="isFilterOpen = !isFilterOpen">
           <img src="../../assets/filter-icon.png" alt="filtre" height="20" />
