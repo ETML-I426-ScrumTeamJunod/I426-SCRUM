@@ -47,7 +47,7 @@ export class TRegionSchema extends BaseModel {
 }
 
 export class TSiteSchema extends BaseModel {
-  static $columns = ['categorie', 'createdAt', 'id', 'latitude', 'lienImage', 'longitude', 'regionId', 'updatedAt'] as const
+  static $columns = ['categorie', 'createdAt', 'id', 'imageBlob', 'imageExtension', 'latitude', 'longitude', 'regionId', 'updatedAt'] as const
   $columns = TSiteSchema.$columns
   @column()
   declare categorie: string
@@ -56,9 +56,11 @@ export class TSiteSchema extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
   @column()
-  declare latitude: number
+  declare imageBlob: Buffer | null
   @column()
-  declare lienImage: string | null
+  declare imageExtension: string | null
+  @column()
+  declare latitude: number
   @column()
   declare longitude: number
   @column()

@@ -27,11 +27,14 @@ export default class Site extends BaseModel {
   @column()
   declare latitude: number
 
-  @column({ columnName: 'lien_image' })
-  declare lienImage: string | null
-
   @column()
   declare regionId: number
+
+  @column({ columnName: 'image_BLOB', serializeAs: null })
+  declare imageBlob: Buffer | null
+
+  @column({ columnName: 'image_extension' })
+  declare imageExtension: string | null
 
   @belongsTo(() => Region, { foreignKey: 'regionId' })
   declare region: BelongsTo<typeof Region>

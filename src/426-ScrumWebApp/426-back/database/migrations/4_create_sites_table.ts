@@ -10,7 +10,9 @@ export default class extends BaseSchema {
       table.enum('categorie', ['Natural', 'Cultural', 'Mixed']).notNullable()
       table.double('longitude').notNullable()
       table.double('latitude').notNullable()
-      table.string('lien_image', 128).nullable()
+
+      table.specificType('image_BLOB', 'LONGBLOB').nullable()
+      table.string('image_extension', 10).nullable()
 
       table
         .integer('region_id')

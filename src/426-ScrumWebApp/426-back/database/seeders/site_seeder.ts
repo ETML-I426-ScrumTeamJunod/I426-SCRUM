@@ -1,3 +1,4 @@
+import sharp from 'sharp'
 import { BaseSeeder } from '@adonisjs/lucid/seeders'
 import Site from '#models/site'
 import Region from '#models/region'
@@ -20,13 +21,40 @@ async function fetchAllRecords() {
     if (!data.results || data.results.length === 0) break
 
     all.push(...data.results)
-    
-    break
-    
+
     offset += limit
   }
 
   return all
+}
+
+async function fetchImageAsBuffer(url: string): Promise<{ buffer: Buffer; ext: string } | null> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) return null
+
+    const arrayBuffer = await response.arrayBuffer()
+    const originalBuffer = Buffer.from(arrayBuffer)
+
+    // Compress the image
+    const compressedBuffer = await sharp(originalBuffer)
+      .resize({ width: 800, withoutEnlargement: true })
+      .jpeg({ quality: 70 })
+      .toBuffer()
+
+    // If the compressed image is still too large, skip it
+    if (compressedBuffer.length > 5 * 1024 * 1024) {
+      console.warn('Image too large, skipping')
+      return null
+    }
+    return {
+      buffer: compressedBuffer,
+      ext: 'jpeg',
+    }
+  } catch (err) {
+    console.error('Image processing failed:', err)
+    return null
+  }
 }
 
 export default class extends BaseSeeder {
@@ -45,6 +73,12 @@ export default class extends BaseSeeder {
         })
       }
 
+      let imageData = null
+
+      if (item.main_image_url) {
+        imageData = await fetchImageAsBuffer(item.main_image_url)
+      }
+
       const site = await Site.firstOrCreate(
         {
           latitude: item.coordinates.lat,
@@ -53,7 +87,8 @@ export default class extends BaseSeeder {
         {
           categorie: item.category,
           regionId: region.id,
-          lienImage: item.main_image_url,
+          imageBlob: imageData?.buffer || null,
+          imageExtension: imageData?.ext || null,
         }
       )
 
