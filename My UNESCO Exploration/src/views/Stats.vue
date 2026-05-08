@@ -332,8 +332,15 @@ const graphPercentageByTypeOfSite = {
 <style>
 h1 {
   text-align: center;
-  margin: 16px;
+  margin: 0, 0, 16px;
   font-size: 250%;
+  color: antiquewhite;
+  /* added */
+  font-style: italic;
+  font-weight: 900;
+  font-size: 3.5rem;
+  margin-bottom: 30px;
+  letter-spacing: -1px;
 }
 #statistics {
   display: flex;
@@ -343,6 +350,6 @@ h1 {
   justify-content: center;
 }
 main {
-  background-color: var(--color-background);
+  background-color: #333333;
 }
 </style>
