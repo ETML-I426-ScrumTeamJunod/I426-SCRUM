@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
 import { onMounted, ref, computed, inject, watch } from 'vue'
+import AppLayout from '../layouts/AppLayout.vue'
 
-declare const L: any
-
-//liest des sites unesco
-const sitesList = ref<any[]>([])
+declare const L: any // Keeping this line for context
+defineOptions({ layout: AppLayout })
+const props = defineProps<{ sites: any[] }>()
+const sitesList = ref<any[]>(props.sites || [])
 
 //recherche de l'utilisateur
 const { searchQuery, selectedCategory, searchTrigger } = inject('searchState') as any
@@ -48,7 +48,7 @@ const filteredSites = computed(() => {
 
   //suggère seulement les 5 premiers sites
   return sitesList.value
-    .filter((site) => site.site.toLowerCase().includes(searchQuery.value.toLowerCase()))
+    .filter((site) => getSiteTitle(site).toLowerCase().includes(searchQuery.value.toLowerCase()))
     .slice(0, 5)
 })
 
@@ -81,31 +81,23 @@ let markers: any[] = []
 const markerSelected = ref<any>(null)
 const currentSite = ref<any>(null)
 
-//recherche
-const submitSearch = () => {
-  if (!searchQuery.value) return
-
-  const marker = markers.find((m) =>
-    m.options.title.toLowerCase().includes(searchQuery.value.toLowerCase()),
-  )
-
-  if (!marker) {
-    alert('Aucun résultat trouvé')
-    return
-  }
-
-  markerCluster.zoomToShowLayer(marker, () => {
-    marker.fire('click')
-    map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true })
-  })
-
-  searchQuery.value = ''
+const getSiteLatitude = (site: any) => site.coordinates?.lat ?? site.latitude
+const getSiteLongitude = (site: any) => site.coordinates?.lon ?? site.longitude
+const getSiteCategory = (site: any) => site.category ?? site.categorie
+const getSiteTitle = (site: any) => site.site ?? site.nom ?? site.name ?? ''
+const getSiteImageUrl = (site: any) => site.imageUrl || (site.id ? `/sites/${site.id}/image` : null)
+const getSiteStates = (site: any) => {
+  if (!site) return ''
+  if (Array.isArray(site.states)) return site.states.join(', ')
+  if (Array.isArray(site.states_names)) return site.states_names.join(', ')
+  if (Array.isArray(site.pays)) return site.pays.map((p: any) => p.nom || p).join(', ')
+  return site.states || site.pays || ''
 }
+const getSiteDescription = (site: any) => site.short_description ?? site.description ?? ''
 
-const selectSite = (siteName: string) => {
-  searchQuery.value = siteName
-  submitSearch()
-}
+const currentSiteImageUrl = computed(() => {
+  return currentSite.value ? getSiteImageUrl(currentSite.value) : null
+})
 
 onMounted(() => {
   if (typeof L === 'undefined') {
@@ -150,45 +142,43 @@ onMounted(() => {
 
   markerCluster = L.markerClusterGroup()
 
-  fetch('/ressources/data/world-heritage-list.json')
-    .then((result) => result.json())
-    .then((data) => {
-      sitesList.value = data
+  sitesList.value.forEach((site: any) => {
+    const lat = getSiteLatitude(site)
+    const lon = getSiteLongitude(site)
+    if (lat == null || lon == null) return
 
-      data.forEach((site: any) => {
-        let pinChosen =
-          site.category == 'Natural'
-            ? pinNatural
-            : site.category == 'Cultural'
-              ? pinCultural
-              : pinMixed
-        let marker = L.marker([site.coordinates.lat, site.coordinates.lon], {
-          icon: pinChosen,
-          title: site.site,
-        })
-
-        marker.originalIcon = pinChosen
-        marker.category = site.category
-
-        marker.on('click', () => {
-          if (markerSelected.value && markerSelected.value !== marker) {
-            markerSelected.value.setIcon(markerSelected.value.originalIcon)
-          }
-
-          markerSelected.value = marker
-          marker.setIcon(pinSelected)
-
-          currentSite.value = site
-
-          markerCluster.zoomToShowLayer(marker, () =>
-            map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true }),
-          )
-        })
-        markerCluster.addLayer(marker)
-        markers.push(marker)
-      })
-      map.addLayer(markerCluster)
+    const pinChosen =
+      getSiteCategory(site) === 'Natural'
+        ? pinNatural
+        : getSiteCategory(site) === 'Cultural'
+          ? pinCultural
+          : pinMixed
+    const marker = L.marker([lat, lon], {
+      icon: pinChosen,
+      title: getSiteTitle(site),
     })
+
+    marker.originalIcon = pinChosen
+    marker.category = getSiteCategory(site)
+
+    marker.on('click', () => {
+      if (markerSelected.value && markerSelected.value !== marker) {
+        markerSelected.value.setIcon(markerSelected.value.originalIcon)
+      }
+
+      markerSelected.value = marker
+      marker.setIcon(pinSelected)
+
+      currentSite.value = site
+
+      markerCluster.zoomToShowLayer(marker, () =>
+        map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true }),
+      )
+    })
+    markerCluster.addLayer(marker)
+    markers.push(marker)
+  })
+  map.addLayer(markerCluster)
 
   map.on('click', () => {
     if (markerSelected.value) {
@@ -222,24 +212,16 @@ onMounted(() => {
     <main class="map-layout">
       <div id="map" class="map-container"></div>
       <aside v-show="markerSelected" class="side-panel">
-        <div class="filter-box">
-          <label for="filter-category" class="filter-label">Filtrer par catégorie :</label>
-          <select id="filter-category" class="filter-select">
-            <option value="all">Tous les sites</option>
-            <option value="Natural">Naturel</option>
-            <option value="Cultural">Culturel</option>
-            <option value="Mixed">Mixte</option>
-          </select>
-        </div>
         <div id="info-panel">
           <div class="site-details">
-            <h2>{{ currentSite?.site || '' }}</h2>
+            <img v-if="currentSiteImageUrl" :src="currentSiteImageUrl" alt="Image du site" style="width: 100%; border-radius: 8px; margin-bottom: 10px;" />
+            <h2>{{ currentSite ? getSiteTitle(currentSite) : '' }}</h2>
             <p class="site-category">
-              <strong>Catégorie :</strong> {{ currentSite?.category || '' }}
+              <strong>Catégorie :</strong> {{ currentSite ? getSiteCategory(currentSite) : '' }}
             </p>
-            <p class="site-location"><strong>Pays :</strong> {{ currentSite?.states || '' }}</p>
+            <p class="site-location"><strong>Pays :</strong> {{ currentSite ? getSiteStates(currentSite) : '' }}</p>
             <hr />
-            <p class="site-description">{{ currentSite?.short_description || '' }}</p>
+            <p class="site-description">{{ currentSite ? getSiteDescription(currentSite) : '' }}</p>
             <button>
               {{
                 currentSite
@@ -276,11 +258,13 @@ onMounted(() => {
   flex: 1;
   width: 100%;
   position: relative;
+  height: 100%;
 }
 
 .map-container {
   flex-grow: 1;
   z-index: 1;
+  height: 100%;
 }
 
 .side-panel {

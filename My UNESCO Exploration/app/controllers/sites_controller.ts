@@ -6,12 +6,17 @@ export default class SitesController {
    * Display a list of resource
    */
   async index({ auth, inertia }: HttpContext) {
-    const allSites = await Site.all()
+    const allSites = await Site.query()
+      .preload('traductions', (query) => query.where('code_langue', 'en'))
+      .preload('pays')
 
     const user = auth.user
     return inertia.render('home', {
       sites: allSites.map((s) => ({
         ...s.serialize(),
+        nom: s.traductions[0]?.nom ?? null,
+        description: s.traductions[0]?.description ?? null,
+        states: s.pays.map((p) => p.nom),
         imageUrl: s.imageBlob ? `/sites/${s.id}/image` : null,
       })),
       nom: user?.nom,

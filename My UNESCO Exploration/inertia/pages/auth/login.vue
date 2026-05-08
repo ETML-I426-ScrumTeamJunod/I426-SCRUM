@@ -1,28 +1,23 @@
 <script setup>
-import Header from './partials/Header.vue'
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref } from 'vue'
+import { Link, router } from '@inertiajs/vue3'
 
 const email = ref('')
 const password = ref('')
 
-const route = useRoute()
-
-function isCreate() {
-  return route.path === '/register'
+const handleLogin = () => {
+  router.post('/login', {
+    email: email.value,
+    password: password.value,
+  })
 }
-
-const pageTitle = computed(() => {
-  return isCreate() ? 'Créer un compte' : 'Connexion à votre compte'
-})
-
 </script>
 
 <template>
   <main class="login-page">
     <div class="login-container">
-      <a href="/" class="back-btn"
-        ><svg
+      <a href="/" class="back-btn">
+        <svg
           viewBox="0 0 20 20"
           version="1.1"
           xmlns="http://www.w3.org/2000/svg"
@@ -44,13 +39,8 @@ const pageTitle = computed(() => {
       </a>
 
       <div class="flex">
-        <h1>{{ pageTitle }}</h1>
+        <h1>Connexion à votre compte</h1>
         <form @submit.prevent="handleLogin">
-          <div v-if="isCreate()" class="form-group">
-            <label for="name">Votre nom</label>
-            <input type="text" id="name" v-model="name" placeholder="Entrez votre nom" required />
-          </div>
-
           <div class="form-group">
             <label for="email">Email</label>
             <input
@@ -73,23 +63,8 @@ const pageTitle = computed(() => {
             />
           </div>
 
-          <div v-if="isCreate()" class="form-group">
-            <label for="confirm-password">Confirmer le Mot de Passe</label>
-            <input
-              type="password"
-              id="confirm-password"
-              v-model="confirmPassword"
-              placeholder="Confirmez votre mot de passe"
-              required
-            />
-          </div>
-
-          <button type="submit">
-            {{ isCreate() ? 'Création' : 'Connexion' }}
-          </button>
-          <RouterLink :to="isCreate() ? '/login' : '/register'" class="register-link">
-            {{ isCreate() ? "J'ai déjà un compte" : "S'inscrire" }}
-          </RouterLink>
+          <button type="submit">Connexion</button>
+          <Link href="/signup" class="register-link">S'inscrire</Link>
         </form>
       </div>
     </div>
@@ -198,7 +173,6 @@ button:hover {
 
 .register-link {
   margin-top: 0.5rem;
-
   color: white;
   text-align: center;
   display: block;

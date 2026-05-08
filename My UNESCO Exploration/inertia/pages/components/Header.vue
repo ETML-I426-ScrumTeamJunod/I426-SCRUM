@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { ref, inject, computed, onMounted } from 'vue'
+import { Link, usePage } from '@inertiajs/vue3'
+import logo from '~/assets/BSI_Logo.png'
+import loupe from '~/assets/loupeBG.png'
+
+const page = usePage()
 
 const { searchQuery, searchTrigger, setCategory: globalSetCategory } = inject('searchState') as any
 
@@ -44,11 +49,13 @@ const setCategory = (category: string) => {
 </script>
 <template>
   <header>
-    <img src="../../assets/BSI_Logo.png" height="50" />
-    <search v-if="$route.path === '/'" class="search-container">
+    <img :src="logo" height="50" />
+    <div v-if="page.url === '/'" class="search-container">
       <form @submit.prevent="submitSearch" class="search-form">
         <button type="button" class="filter-toggle-btn" @click.stop="isFilterOpen = !isFilterOpen">
-          <img src="../../assets/filter-icon.png" alt="filtre" height="20" />
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M3 4h18v2l-7 8v5l-4 2v-7L3 6V4z" />
+          </svg>
         </button>
 
         <input
@@ -60,7 +67,7 @@ const setCategory = (category: string) => {
         />
 
         <button type="submit" class="search-btn">
-          <img src="../../assets/loupeBG.png" alt="loupe" height="23" />
+          <img :src="loupe" alt="loupe" height="23" />
         </button>
       </form>
 
@@ -76,13 +83,13 @@ const setCategory = (category: string) => {
           <span v-html="highlightMatch(site.site)"></span>
         </li>
       </ul>
-    </search>
+    </div>
     <nav>
       <ul>
         <li>
-          <RouterLink to="/" class="nav-btn">Accueil</RouterLink>
-          <RouterLink to="/stats" class="nav-btn">Stats</RouterLink>
-          <RouterLink to="/wishlist" class="nav-btn">Listes</RouterLink>
+          <Link href="/" class="nav-btn">Accueil</Link>
+          <Link href="/stats" class="nav-btn">Stats</Link>
+          <Link href="/wishlist" class="nav-btn">Listes</Link>
         </li>
       </ul>
     </nav>
@@ -94,7 +101,7 @@ const setCategory = (category: string) => {
       </div>
 
       <div class="profile-menu">
-        <RouterLink :to="userConnected ? { name: 'profile', params: { id: userId } } : '/login'">
+        <Link :href="userConnected ? `/profile/${userId}` : '/login'">
           <svg
             class="profile-icon"
             viewBox="0 0 24 24"
@@ -106,7 +113,7 @@ const setCategory = (category: string) => {
               fill="currentColor"
             />
           </svg>
-        </RouterLink>
+        </Link>
       </div>
     </div>
   </header>

@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, useRouter } from 'vue-router'
-
-const router = useRouter()
+import { Link } from '@inertiajs/vue3'
 
 const user = {
   name: 'Bertrand',
@@ -110,7 +108,7 @@ function getVisitedAmount() {
           v-show="!item.visited && item.wishlist"
         >
         
-          <RouterLink to="/">
+          <Link href="/">
             <div class="image-box">
               <img :src="item.lien_image" :alt="item.nom" />
             </div>
@@ -118,14 +116,14 @@ function getVisitedAmount() {
               <h3>{{ item.nom }}</h3>
               📍<span class="country-info" v-for="value in item.pays"> {{ value + ', ' }}</span>
             </div>
-          </RouterLink>
+          </Link>
         </div>
       </div>
       <h2 class="list-title">Sites visités</h2>
       <div class="sites-grid">
         <p v-if="visited_site.length == 0" class="visited-or-not">Vous n'avez visité aucun site pour le moment </p>
         <div v-for="item in sites" :key="item.id" class="site-card" v-show="item.visited">
-          <RouterLink to="/">
+          <Link href="/">
             <div class="image-box">
               <img :src="item.lien_image" :alt="item.nom" />
             </div>
@@ -133,7 +131,7 @@ function getVisitedAmount() {
               <h3>{{ item.nom }}</h3>
               📍<span class="country-info" v-for="value in item.pays"> {{ value + ', ' }}</span>
             </div>
-          </RouterLink>
+          </Link>
         </div>
       </div>
     </div>

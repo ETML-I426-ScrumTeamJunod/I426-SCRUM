@@ -1,5 +1,5 @@
 <script setup>
-import Header from './partials/Header.vue'
+import Header from './components/Header.vue'
 import StatsCard from './components/Stats-card.vue'
 
 //fake data for the example
