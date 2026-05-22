@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 import { Link, router } from '@inertiajs/vue3'
+import AppLayout from '../../layouts/AppLayout.vue'
+defineOptions({ layout: AppLayout })
 
 const name = ref('')
 const email = ref('')

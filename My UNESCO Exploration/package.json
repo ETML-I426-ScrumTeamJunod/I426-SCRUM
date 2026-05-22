@@ -73,6 +73,7 @@
     "@tuyau/core": "^1.0.0",
     "@vinejs/vine": "^4.3.0",
     "apexcharts": "^5.10.6",
+    "axios": "^1.16.1",
     "better-sqlite3": "^12.6.2",
     "edge.js": "^6.5.0",
     "luxon": "^3.7.2",

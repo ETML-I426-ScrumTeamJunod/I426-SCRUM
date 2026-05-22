@@ -21,10 +21,9 @@ async function fetchAllRecords() {
     if (!data.results || data.results.length === 0) break
 
     all.push(...data.results)
-
     offset += limit
   }
-
+  
   return all
 }
 

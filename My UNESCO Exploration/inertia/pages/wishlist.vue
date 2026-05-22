@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3'
+import AppLayout from '../layouts/AppLayout.vue'
+defineOptions({ layout: AppLayout })
 
 const user = {
   name: 'Bertrand',
@@ -237,7 +239,6 @@ progress::-moz-progress-bar {
 .site-card {
   background-color: #d9d9d9; /* Gris des cartes */
   padding: 15px;
-  border-radius: 20px;
   color: #333;
 }
 
@@ -251,7 +252,6 @@ progress::-moz-progress-bar {
   height: 200px;
   background: white;
   margin-bottom: 15px;
-  border-radius: 15px;
 }
 
 .image-box img {

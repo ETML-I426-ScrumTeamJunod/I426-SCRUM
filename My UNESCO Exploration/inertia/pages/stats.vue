@@ -1,7 +1,7 @@
 <script setup>
-import Header from './components/Header.vue'
 import StatsCard from './components/Stats-card.vue'
-
+import AppLayout from '../layouts/AppLayout.vue'
+defineOptions({ layout: AppLayout })
 //fake data for the example
 const user = 'Bertrand'
 const totalOfSites = 1247
