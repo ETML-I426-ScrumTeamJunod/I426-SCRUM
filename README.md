@@ -22,10 +22,15 @@
 
 > Afin d'installer le projet, veuillez commencer par télécharger le projet disponible sur Github (archive tar ou le zip, il est aussi possible de faire un fork puis un clone du repo).
 >
+> Avant toutes choses, veuillez copier le fichier .env.example, le coller au même endroit et le renommer ".env".
 > Après avoir fait cela, rendez vous dans le dossier _My Unesco Exploration_, et ouvrez une ligne de commande.  
 > Dans cette ligne de commande, veuillez écrire la commande `npm i`, cette commande va installer toutes les dépendances utilisées lors de ce projet.
 >
+> Pendant ce temps, vous pouvez vous rendre dans le dossier _./db_ et ouvrir une autre console afin d'y lancer la commande `docker compose up -d`.
+>
 > Maintenant que tout est installé, vous pouvez faire un `npm audit fix` pour vous assurer qu'il n'y a aucun problème a ce niveau, cette commande va examiner les dépendances installées et va rechercher des vulnérabilité de sécurité, si elle en trouve, la commande va automatiquement créer installer les mises à jour disponibles et corriger ces vulnérabilités.  
+> Ensuite, ouvrez une ligne de commande bash dans ce même dossier et écrivez cette commande `node ace generate:key`, cette commande va générer une clé qui doit rester secrète, ne l'affichez pas dans le .env.example, ç'est dangereux, cette clé sera générée et ajoutée au fichier .env avec le nom de constante "APP_KEY".  
+> Il faudra aussi lancer la commande `node ace migration:fresh --seed`
 > Dès que vous êtes certain qu'il n'y a aucun problème avec les dépendances, vous pouvez utiliser la commande `npm run dev`, cette commande va vous renvoyer l'adresse du site, vous n'aurez plus qu'à copier/coller ce lien dans votre navigateur et vous vous retrouverez sur la page d'accueil du site.
 
 ## Utilisation
