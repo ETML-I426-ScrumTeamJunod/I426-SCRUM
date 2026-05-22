@@ -9,6 +9,7 @@ export type ScannedRoutes = {
     'site.image': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'stats': { paramsTuple?: []; params?: {} }
     'wishlist': { paramsTuple?: []; params?: {} }
+    'visited_sites.toggle': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'new_account.create': { paramsTuple?: []; params?: {} }
     'new_account.store': { paramsTuple?: []; params?: {} }
     'session.create': { paramsTuple?: []; params?: {} }
@@ -34,6 +35,7 @@ export type ScannedRoutes = {
     'session.create': { paramsTuple?: []; params?: {} }
   }
   POST: {
+    'visited_sites.toggle': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'new_account.store': { paramsTuple?: []; params?: {} }
     'session.store': { paramsTuple?: []; params?: {} }
     'session.destroy': { paramsTuple?: []; params?: {} }

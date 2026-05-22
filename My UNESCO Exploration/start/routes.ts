@@ -11,7 +11,8 @@ import { middleware } from '#start/kernel'
 import { controllers } from '#generated/controllers'
 import router from '@adonisjs/core/services/router'
 import SitesController from '#controllers/sites_controller'
-
+import VisitedSitesController from '#controllers/visited_sites_controller'
+import StatsController from '#controllers/stats_controller'
 router.get('/', [SitesController, 'index']).as('home')
 
 router.get('/sites/:id/details', [SitesController, 'getDetails']).as('details')
@@ -19,8 +20,9 @@ router.get('/sites/:id/image', [SitesController, 'getImage']).as('site.image')
 
 router
   .group(() => {
-    router.on('/stats').renderInertia('stats', {}).as('stats')
+    router.get('/stats', [StatsController, 'index']).as('stats')
     router.on('/wishlist').renderInertia('wishlist', {}).as('wishlist')
+    router.post('/api/sites/:id/toggle-visited', [VisitedSitesController, 'toggle'])
   })
   .use(middleware.auth())
 

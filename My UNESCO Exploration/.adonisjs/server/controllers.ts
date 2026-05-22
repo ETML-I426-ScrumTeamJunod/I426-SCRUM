@@ -9,4 +9,6 @@ export const controllers = {
   Regions: () => import('#controllers/regions_controller'),
   Session: () => import('#controllers/session_controller'),
   Sites: () => import('#controllers/sites_controller'),
+  Stats: () => import('#controllers/stats_controller'),
+  VisitedSites: () => import('#controllers/visited_sites_controller'),
 }

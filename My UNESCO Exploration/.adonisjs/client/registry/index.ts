@@ -36,6 +36,12 @@ const routes = {
     tokens: [{"old":"/wishlist","type":0,"val":"wishlist","end":""}],
     types: placeholder as Registry['wishlist']['types'],
   },
+  'visited_sites.toggle': {
+    methods: ["POST"],
+    pattern: '/api/sites/:id/toggle-visited',
+    tokens: [{"old":"/api/sites/:id/toggle-visited","type":0,"val":"api","end":""},{"old":"/api/sites/:id/toggle-visited","type":0,"val":"sites","end":""},{"old":"/api/sites/:id/toggle-visited","type":1,"val":"id","end":""},{"old":"/api/sites/:id/toggle-visited","type":0,"val":"toggle-visited","end":""}],
+    types: placeholder as Registry['visited_sites.toggle']['types'],
+  },
   'new_account.create': {
     methods: ["GET","HEAD"],
     pattern: '/signup',

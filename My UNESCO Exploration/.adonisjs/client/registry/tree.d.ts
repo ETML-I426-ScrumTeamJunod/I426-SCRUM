@@ -9,6 +9,9 @@ export interface ApiDefinition {
   }
   stats: typeof routes['stats']
   wishlist: typeof routes['wishlist']
+  visitedSites: {
+    toggle: typeof routes['visited_sites.toggle']
+  }
   newAccount: {
     create: typeof routes['new_account.create']
     store: typeof routes['new_account.store']

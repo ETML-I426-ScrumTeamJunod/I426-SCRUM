@@ -21,7 +21,11 @@ async function fetchAllRecords() {
     if (!data.results || data.results.length === 0) break
 
     all.push(...data.results)
+
+    break;
+    
     offset += limit
+
   }
   
   return all

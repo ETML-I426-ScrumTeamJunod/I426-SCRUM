@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, inject, watch } from 'vue'
 import AppLayout from '../layouts/AppLayout.vue'
+import { router } from '@inertiajs/vue3'
 
 declare const L: any // Keeping this line for context
 defineOptions({ layout: AppLayout })
@@ -98,6 +99,7 @@ const getSiteDescription = (site: any) => site.short_description ?? site.descrip
 const currentSiteImageUrl = computed(() => {
   return currentSite.value ? getSiteImageUrl(currentSite.value) : null
 })
+
 
 onMounted(() => {
   if (typeof L === 'undefined') {
@@ -205,41 +207,53 @@ onMounted(() => {
     })
   }
 })
+function toggleVisited(site: any) {
+  router.post(`/api/sites/${site.id}/toggle-visited`, {}, {
+    preserveState: true,
+    preserveScroll: true,
+    onSuccess: () => {
+      if (currentSite.value) {
+        const updatedSite = sitesList.value.find(s => s.id === site.id)
+        if (updatedSite) currentSite.value = updatedSite
+      }
+    }
+  })
+}
 </script>
 
 <template>
   <div class="page-container">
     <main class="map-layout">
       <div id="map" class="map-container"></div>
-      <aside v-show="markerSelected" class="side-panel">
+      
+      <aside v-if="markerSelected && currentSite" class="side-panel">
         <div id="info-panel">
           <div class="site-details">
             <img v-if="currentSiteImageUrl" :src="currentSiteImageUrl" alt="Image du site" style="width: 100%; border-radius: 8px; margin-bottom: 10px;" />
-            <h2>{{ currentSite ? getSiteTitle(currentSite) : '' }}</h2>
+            <h2>{{ getSiteTitle(currentSite) }}</h2>
             <p class="site-category">
-              <strong>Catégorie :</strong> {{ currentSite ? getSiteCategory(currentSite) : '' }}
+              <strong>Catégorie :</strong> {{ getSiteCategory(currentSite) }}
             </p>
-            <p class="site-location"><strong>Pays :</strong> {{ currentSite ? getSiteStates(currentSite) : '' }}</p>
+            <p class="site-location"><strong>Pays :</strong> {{ getSiteStates(currentSite) }}</p>
             <hr />
-            <p class="site-description">{{ currentSite ? getSiteDescription(currentSite) : '' }}</p>
-            <button>
-              {{
-                currentSite
-                  ? currentSite.InWishlist
-                    ? 'Supprimer de ma liste'
-                    : 'Ajouter à ma liste'
-                  : ''
-              }}
-            </button>
-            <button>
-              {{
-                currentSite
-                  ? currentSite.Visited
-                    ? 'Marquer comme non-visité'
-                    : 'Marquer comme visité'
-                  : ''
-              }}
-            </button>
+            <p class="site-description">{{ getSiteDescription(currentSite) }}</p>
+            
+            <div class="actions-buttons">
+              <button 
+                @click="toggleWishlist(currentSite)"
+                :class="{ 'in-wishlist': currentSite.InWishlist }"
+              >
+                {{ currentSite.InWishlist ? 'Supprimer de ma liste' : 'Ajouter à ma liste' }}
+              </button>
+
+              <button 
+                @click="toggleVisited(currentSite)"
+                :class="{ 'is-visited': currentSite.Visited }"
+              >
+                {{ currentSite.Visited ? 'Marquer comme non-visité' : 'Marquer comme visité' }}
+              </button>
+            </div>
+
           </div>
         </div>
       </aside>
@@ -277,6 +291,35 @@ onMounted(() => {
   font-family: sans-serif;
   color: var(--color-text);
   z-index: 2;
+}
+
+.actions-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.actions-buttons button {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  background-color: #fff;
+  transition: all 0.2s ease;
+}
+
+/* Styles pour les états actifs */
+.actions-buttons button.is-visited {
+  background-color: #2e7d32;
+  color: white;
+  border-color: #1b5e20;
+}
+
+.actions-buttons button.in-wishlist {
+  background-color: #0288d1;
+  color: white;
+  border-color: #01579b;
 }
 
 .filter-box {
