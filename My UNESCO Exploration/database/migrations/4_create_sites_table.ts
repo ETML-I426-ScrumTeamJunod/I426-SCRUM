@@ -11,7 +11,7 @@ export default class extends BaseSchema {
       table.double('longitude').notNullable()
       table.double('latitude').notNullable()
 
-      table.specificType('image_BLOB', 'LONGBLOB').nullable()
+      table.binary('image_BLOB').nullable()
       table.string('image_extension', 10).nullable()
 
       table

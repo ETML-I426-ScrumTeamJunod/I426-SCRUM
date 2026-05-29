@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Link } from '@inertiajs/vue3'
 import AppLayout from '../layouts/AppLayout.vue'
+import { useWishlist } from '../composables/useWishlist'
 defineOptions({ layout: AppLayout })
 
 const user = {
@@ -9,66 +11,46 @@ const user = {
   mot_de_passe: '1234567890',
 }
 
-const sites = [
+const hardcodedSites = [
   {
-    id: 1,
+    id: -1,
     nom: 'Ancient and Primeval Beech Forests',
     categorie: 'Natural',
     description: 'This transboundary property...',
-    lien_image: '/ressources/images/forests.png',
+    imageUrl: '/ressources/images/forests.png',
     pays: [
-      'Albania',
-      'Austria',
-      'Belgium',
-      'Bulgaria',
-      'Croatia',
-      'Germany',
-      'Italy',
-      'Romania',
-      'Slovakia',
-      'Slovenia',
-      'Spain',
-      'Ukraine',
+      'Albania', 'Austria', 'Belgium', 'Bulgaria', 'Croatia',
+      'Germany', 'Italy', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Ukraine',
     ],
-    wishlist: true,
     visited: true,
   },
   {
-    id: 2,
+    id: -2,
     nom: 'Jesuit Missions of the Guaranis',
     categorie: 'Natural',
     description: 'Jesuit Missions of the Guaranis...',
-    lien_image: '/ressources/images/san-ignacio.png',
+    imageUrl: '/ressources/images/san-ignacio.png',
     pays: ['Argentina', 'Brazil'],
-    wishlist: true,
     visited: true,
   },
 ]
 
+const { wishlist, removeFromWishlist } = useWishlist()
 
+const dynamicSites = computed(() =>
+  wishlist.value.map((s) => ({ ...s, visited: false }))
+)
 
-const visited_site = []
+const allSites = computed(() => [...hardcodedSites, ...dynamicSites.value])
 
-const not_visited_site = []
+const visitedSites = computed(() => allSites.value.filter((s) => s.visited))
+const wishlistSites = computed(() => allSites.value.filter((s) => !s.visited))
 
-sites.forEach(element => {
-  if(element.visited == true)
-  {
-    visited_site.push(element)
-  }else 
-  {
-    not_visited_site.push(element)
-  }
-});
-
-function getVisitedAmount() {
-  let visited = 0
-
-  sites.forEach((site) => {
-    if (site.visited) visited++
-  })
-  return visited
-}
+const visitedCount = computed(() => visitedSites.value.length)
+const totalCount = computed(() => allSites.value.length)
+const progressPercent = computed(() =>
+  totalCount.value ? Math.round((visitedCount.value / totalCount.value) * 100) : 0
+)
 </script>
 
 <template>
@@ -81,57 +63,40 @@ function getVisitedAmount() {
           <p class="stats-subtitle">Votre voyage autour du monde</p>
         </div>
         <div class="progress-container">
-          <progress
-            :value="getVisitedAmount()"
-            :max="sites.length"
-            style="border-radius: 10px"
-          ></progress>
+          <progress :value="visitedCount" :max="totalCount" style="border-radius: 10px"></progress>
           <div class="progress-info">
-            <span
-              >Vous avez visité {{ getVisitedAmount() }} sites sur {{ sites.length }} inscrit dans
-              votre liste!!</span
-            >
-            <span class="percentage-label"
-              >{{ Math.round((getVisitedAmount() / sites.length) * 100) }}%<br /><small
-                style="font-weight: bold; font-size: 20"
-                >complété</small
-              ></span
-            >
+            <span>Vous avez visité {{ visitedCount }} sites sur {{ totalCount }} inscrits dans votre liste!</span>
+            <span class="percentage-label">{{ progressPercent }}%<br /><small style="font-weight: bold; font-size: 20">complété</small></span>
           </div>
         </div>
       </section>
+
       <h2 class="list-title">Votre Liste</h2>
       <div class="sites-grid">
-        <p v-if="not_visited_site.length == 0" class="visited-or-not">Vous n'avez aucun site dans votre liste pour le moment</p>
-        <div
-          v-for="item in sites"
-          :key="item.id"
-          class="site-card"
-          v-show="!item.visited && item.wishlist"
-        >
-        
-          <Link href="/">
-            <div class="image-box">
-              <img :src="item.lien_image" :alt="item.nom" />
-            </div>
-            <div class="site-details">
-              <h3>{{ item.nom }}</h3>
-              📍<span class="country-info" v-for="value in item.pays"> {{ value + ', ' }}</span>
-            </div>
-          </Link>
+        <p v-if="wishlistSites.length === 0" class="visited-or-not">Vous n'avez aucun site dans votre liste pour le moment</p>
+        <div v-for="item in wishlistSites" :key="item.id" class="site-card">
+          <div class="image-box">
+            <img :src="item.imageUrl ?? ''" :alt="item.nom" />
+          </div>
+          <div class="site-details">
+            <h3>{{ item.nom }}</h3>
+            📍<span class="country-info" v-for="value in item.pays" :key="value"> {{ value + ', ' }}</span>
+          </div>
+          <button class="btn-remove" @click="removeFromWishlist(item.id)">Retirer de ma liste</button>
         </div>
       </div>
+
       <h2 class="list-title">Sites visités</h2>
       <div class="sites-grid">
-        <p v-if="visited_site.length == 0" class="visited-or-not">Vous n'avez visité aucun site pour le moment </p>
-        <div v-for="item in sites" :key="item.id" class="site-card" v-show="item.visited">
+        <p v-if="visitedSites.length === 0" class="visited-or-not">Vous n'avez visité aucun site pour le moment</p>
+        <div v-for="item in visitedSites" :key="item.id" class="site-card">
           <Link href="/">
             <div class="image-box">
-              <img :src="item.lien_image" :alt="item.nom" />
+              <img :src="item.imageUrl ?? ''" :alt="item.nom" />
             </div>
             <div class="site-details">
               <h3>{{ item.nom }}</h3>
-              📍<span class="country-info" v-for="value in item.pays"> {{ value + ', ' }}</span>
+              📍<span class="country-info" v-for="value in item.pays" :key="value"> {{ value + ', ' }}</span>
             </div>
           </Link>
         </div>
@@ -245,6 +210,24 @@ progress::-moz-progress-bar {
 .site-card:hover {
   cursor: pointer;
   transform: scale(1.03);
+}
+
+.btn-remove {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #555;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.btn-remove:hover {
+  background-color: #b30000;
 }
 
 .image-box {

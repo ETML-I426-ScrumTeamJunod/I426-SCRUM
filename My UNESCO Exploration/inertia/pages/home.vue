@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, computed, inject, watch } from 'vue'
 import AppLayout from '../layouts/AppLayout.vue'
+import { useWishlist } from '../composables/useWishlist'
 
 declare const L: any // Keeping this line for context
 defineOptions({ layout: AppLayout })
@@ -80,6 +81,17 @@ let markerCluster: any = null
 let markers: any[] = []
 const markerSelected = ref<any>(null)
 const currentSite = ref<any>(null)
+
+const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist()
+
+const toggleWishlist = () => {
+  if (!currentSite.value) return
+  if (isInWishlist(currentSite.value.id)) {
+    removeFromWishlist(currentSite.value.id)
+  } else {
+    addToWishlist(currentSite.value)
+  }
+}
 
 const getSiteLatitude = (site: any) => site.coordinates?.lat ?? site.latitude
 const getSiteLongitude = (site: any) => site.coordinates?.lon ?? site.longitude
@@ -222,23 +234,13 @@ onMounted(() => {
             <p class="site-location"><strong>Pays :</strong> {{ currentSite ? getSiteStates(currentSite) : '' }}</p>
             <hr />
             <p class="site-description">{{ currentSite ? getSiteDescription(currentSite) : '' }}</p>
-            <button>
-              {{
-                currentSite
-                  ? currentSite.InWishlist
-                    ? 'Supprimer de ma liste'
-                    : 'Ajouter à ma liste'
-                  : ''
-              }}
-            </button>
-            <button>
-              {{
-                currentSite
-                  ? currentSite.Visited
-                    ? 'Marquer comme non-visité'
-                    : 'Marquer comme visité'
-                  : ''
-              }}
+            <button
+              v-if="currentSite"
+              class="btn-wishlist"
+              :class="{ 'btn-wishlist--active': isInWishlist(currentSite.id) }"
+              @click="toggleWishlist"
+            >
+              {{ isInWishlist(currentSite.id) ? '✓ Dans ma liste' : '+ Ajouter à ma liste' }}
             </button>
           </div>
         </div>
@@ -300,6 +302,32 @@ onMounted(() => {
 :deep(.site-description) {
   margin-top: 10px;
   line-height: 1.5;
+}
+
+.btn-wishlist {
+  margin-top: 12px;
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  background-color: #b30000;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.btn-wishlist:hover {
+  background-color: #8a0000;
+}
+
+.btn-wishlist--active {
+  background-color: #2d7a2d;
+}
+
+.btn-wishlist--active:hover {
+  background-color: #1e5a1e;
 }
 
 @media (max-width: 768px) {
