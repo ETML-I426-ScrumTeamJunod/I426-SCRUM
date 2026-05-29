@@ -14,12 +14,17 @@ const handleLogin = () => {
     alert('Les mots de passe ne correspondent pas')
     return
   }
-  router.post('/signup', {
-    nom: name.value,
-    email: email.value,
-    motDePasse: password.value,
-    passwordConfirmation: confirmPassword.value,
-  })
+
+  try {
+    router.post('/signup', {
+      nom: name.value,
+      email: email.value,
+      motDePasse: password.value,
+      passwordConfirmation: confirmPassword.value,
+    })
+  } catch (error) {
+    console.log(error)
+  }
 }
 </script>
 

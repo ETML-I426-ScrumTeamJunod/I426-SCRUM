@@ -8,18 +8,25 @@ export default class NewAccountController {
   }
 
   async store({ request, response, auth }: HttpContext) {
-    const { nom, email, motDePasse } = await request.validateUsing(signupValidator)
+    try {
+      const { nom, email, motDePasse } = await request.validateUsing(signupValidator)
 
-    if (!email || !motDePasse) {
-      return response.status(400).json({ error: "Email et mot de passe requis" });
+      //debug
+      console.log("Création d'un user : ", { nom, email, motDePasse })
+
+      if (!email || !motDePasse) {
+        return response.status(400).json({ error: 'Email et mot de passe requis' })
+      }
+      const user = await User.create({
+        nom: nom,
+        email: email,
+        motDePasse: motDePasse,
+      })
+
+      await auth.use('web').login(user)
+      response.redirect().toRoute('home')
+    } catch (error) {
+      console.log('Erreur de validation', error)
     }
-    const user = await User.create({
-    nom: nom,
-    email: email,
-    motDePasse: motDePasse,
-    })
-
-    await auth.use('web').login(user)
-    response.redirect().toRoute('home')
   }
 }
