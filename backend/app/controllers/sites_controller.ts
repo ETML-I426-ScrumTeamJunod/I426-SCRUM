@@ -5,10 +5,11 @@ export default class SitesController {
   /**
    * Display a list of resource
    */
-  async index({ response }: HttpContext) {
+  async index({ request, response }: HttpContext) {
+    const lang = request.input('lang', 'en')
     response.ok(
       await Site.query()
-        .preload('traductions', (query) => query.where('code_langue', 'en'))
+        .preload('traductions', (query) => query.where('code_langue', lang))
         .preload('pays')
     )
   }

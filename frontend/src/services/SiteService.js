@@ -12,9 +12,9 @@ const apiClient = axios.create({
 })
 
 export default {
-  // GET /api/sites — all sites with EN traductions + pays
-  getSites() {
-    return apiClient.get('')
+  // GET /api/sites — all sites with en/fr translations + countries
+  getSites(lang = 'en') {
+    return apiClient.get(`?lang=${lang}`)
   },
 
   // GET /api/sites/:id/image — raw image blob
