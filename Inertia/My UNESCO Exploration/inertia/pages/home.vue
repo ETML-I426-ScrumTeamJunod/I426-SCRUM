@@ -32,7 +32,7 @@ watch(searchTrigger, () => {
   if (!searchQuery.value || markers.length === 0) return
 
   const marker = markers.find((m) =>
-    m.options.title.toLowerCase().includes(searchQuery.value.toLowerCase()),
+    m.options.title.toLowerCase().includes(searchQuery.value.toLowerCase())
   )
 
   if (marker) {
@@ -125,11 +125,13 @@ onMounted(() => {
     maxBoundsViscosity: 1.0,
   })
 
-  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.{ext}', {
-    attribution:
-      '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    ext: 'jpg',
-  }).addTo(map)
+  L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    {
+      attribution:
+        'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
+    }
+  ).addTo(map)
 
   const pinNatural = L.icon({
     iconUrl: '/ressources/images/marker-green.png',
@@ -184,7 +186,7 @@ onMounted(() => {
       currentSite.value = site
 
       markerCluster.zoomToShowLayer(marker, () =>
-        map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true }),
+        map.setView(marker.getLatLng(), Math.max(map.getZoom(), 6), { animate: true })
       )
     })
     markerCluster.addLayer(marker)
@@ -226,12 +228,19 @@ onMounted(() => {
       <aside v-show="markerSelected" class="side-panel">
         <div id="info-panel">
           <div class="site-details">
-            <img v-if="currentSiteImageUrl" :src="currentSiteImageUrl" alt="Image du site" style="width: 100%; border-radius: 8px; margin-bottom: 10px;" />
+            <img
+              v-if="currentSiteImageUrl"
+              :src="currentSiteImageUrl"
+              alt="Image du site"
+              style="width: 100%; border-radius: 8px; margin-bottom: 10px"
+            />
             <h2>{{ currentSite ? getSiteTitle(currentSite) : '' }}</h2>
             <p class="site-category">
               <strong>Catégorie :</strong> {{ currentSite ? getSiteCategory(currentSite) : '' }}
             </p>
-            <p class="site-location"><strong>Pays :</strong> {{ currentSite ? getSiteStates(currentSite) : '' }}</p>
+            <p class="site-location">
+              <strong>Pays :</strong> {{ currentSite ? getSiteStates(currentSite) : '' }}
+            </p>
             <hr />
             <p class="site-description">{{ currentSite ? getSiteDescription(currentSite) : '' }}</p>
             <button

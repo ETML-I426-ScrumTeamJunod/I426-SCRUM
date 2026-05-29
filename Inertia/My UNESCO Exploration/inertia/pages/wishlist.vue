@@ -11,29 +11,7 @@ const user = {
   mot_de_passe: '1234567890',
 }
 
-const hardcodedSites = [
-  {
-    id: -1,
-    nom: 'Ancient and Primeval Beech Forests',
-    categorie: 'Natural',
-    description: 'This transboundary property...',
-    imageUrl: '/ressources/images/forests.png',
-    pays: [
-      'Albania', 'Austria', 'Belgium', 'Bulgaria', 'Croatia',
-      'Germany', 'Italy', 'Romania', 'Slovakia', 'Slovenia', 'Spain', 'Ukraine',
-    ],
-    visited: true,
-  },
-  {
-    id: -2,
-    nom: 'Jesuit Missions of the Guaranis',
-    categorie: 'Natural',
-    description: 'Jesuit Missions of the Guaranis...',
-    imageUrl: '/ressources/images/san-ignacio.png',
-    pays: ['Argentina', 'Brazil'],
-    visited: true,
-  },
-]
+const hardcodedSites = []
 
 const { wishlist, removeFromWishlist } = useWishlist()
 
