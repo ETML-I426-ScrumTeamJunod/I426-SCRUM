@@ -30,7 +30,7 @@ export default class Site extends BaseModel {
   @column()
   declare regionId: number
 
-  @column({ columnName: 'image_BLOB', serializeAs: null })
+  @column({ columnName: 'image_blob', serializeAs: null })
   declare imageBlob: Buffer | null
 
   @column({ columnName: 'image_extension' })

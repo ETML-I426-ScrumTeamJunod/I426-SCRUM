@@ -1,8 +1,7 @@
 # Dependencies and AdonisJS build
 node_modules
 build
-tmp/*
-!tmp/.gitkeep
+tmp
 
 # Secrets
 .env

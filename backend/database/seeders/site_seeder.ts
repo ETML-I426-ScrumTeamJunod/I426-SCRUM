@@ -30,8 +30,17 @@ async function fetchAllRecords() {
 
 async function fetchImageAsBuffer(url: string): Promise<{ buffer: Buffer; ext: string } | null> {
   try {
-    const response = await fetch(url)
-    if (!response.ok) return null
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'Referer': 'https://whc.unesco.org/',
+      },
+    })
+
+    if (!response.ok) {
+      console.warn(`Image fetch failed: ${response.status} ${response.statusText} — ${url}`)
+      return null
+    }
 
     const arrayBuffer = await response.arrayBuffer()
     const originalBuffer = Buffer.from(arrayBuffer)

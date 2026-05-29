@@ -5,17 +5,12 @@ export default class SitesController {
   /**
    * Display a list of resource
    */
-  async index({ auth, inertia }: HttpContext) {
-    const allSites = await Site.all()
-
-    const user = auth.user
-    return inertia.render('home', {
-      sites: allSites.map((s) => ({
-        ...s.serialize(),
-        imageUrl: s.imageBlob ? `/sites/${s.id}/image` : null,
-      })),
-      nom: user?.nom,
-    })
+  async index({ response }: HttpContext) {
+    response.ok(
+      await Site.query()
+        .preload('traductions', (query) => query.where('code_langue', 'en'))
+        .preload('pays')
+    )
   }
 
   public async getImage({ params, response }: HttpContext) {

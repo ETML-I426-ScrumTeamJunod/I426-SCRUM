@@ -8,34 +8,29 @@
 */
 
 import { middleware } from '#start/kernel'
-import { controllers } from '#generated/controllers'
 import router from '@adonisjs/core/services/router'
-import SitesController from '#controllers/sites_controller'
-
-router.get('/', [SitesController, 'index']).as('home')
-
-router.get('/sites/:id/details', [SitesController, 'getDetails']).as('details')
-router.get('/sites/:id/image', [SitesController, 'getImage']).as('site.image')
+const SitesController = () => import('#controllers/sites_controller')
+const NewAccountController = () => import('#controllers/new_account_controller')
+const SessionController = () => import('#controllers/session_controller')
 
 router
   .group(() => {
-    router.on('/stats').renderInertia('stats', {}).as('stats')
-    router.on('/list').renderInertia('list', {}).as('list')
-  })
-  .use(middleware.auth())
+    router.get('/sites/', [SitesController, 'index'])
+    router.get('/sites/:id/details', [SitesController, 'getDetails'])
+    router.get('/sites/:id/image', [SitesController, 'getImage'])
 
-router
-  .group(() => {
-    router.get('signup', [controllers.NewAccount, 'create'])
-    router.post('signup', [controllers.NewAccount, 'store'])
+    router.group(() => {
+      router.get('signup', [NewAccountController, 'create'])
+      router.post('signup', [NewAccountController, 'store'])
 
-    router.get('login', [controllers.Session, 'create'])
-    router.post('login', [controllers.Session, 'store'])
-  })
-  .use(middleware.guest())
+      router.get('login', [SessionController, 'create'])
+      router.post('login', [SessionController, 'store'])
+    })
 
-router
-  .group(() => {
-    router.post('logout', [controllers.Session, 'destroy'])
+    router
+      .group(() => {
+        router.post('logout', [SessionController, 'destroy'])
+      })
+      .use(middleware.auth())
   })
-  .use(middleware.auth())
+  .prefix('/api')
