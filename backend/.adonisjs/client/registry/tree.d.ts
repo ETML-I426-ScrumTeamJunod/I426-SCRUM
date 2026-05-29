@@ -1,5 +1,5 @@
 /* eslint-disable prettier/prettier */
-import type { routes } from './index.ts'
+import type { routes } from './index.js'
 
 export interface ApiDefinition {
   home: typeof routes['home']
