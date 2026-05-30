@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { RouterLink } from 'vue-router'
 import { onMounted, ref, computed, inject, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import SiteService from '@/services/SiteService'
 
 declare const L: any
+
+const { t, locale } = useI18n()
 
 const sitesList = ref<any[]>([])
 
@@ -40,12 +43,27 @@ watch(searchTrigger, () => {
   }
 })
 
+watch(locale, async () => {
+  // Reload markers and update their titles when language changes
+  if (markerCluster && sitesList.value.length > 0) {
+    markers.forEach((marker) => {
+      const site = sitesList.value.find((s) => s.id === marker.getLatLng().id)
+      if (site) {
+        marker.options.title = getSiteName(site)
+      }
+    })
+    if (markerSelected.value) {
+      currentSite.value = sitesList.value.find((s) => s.latitude === markerSelected.value.getLatLng().lat && s.longitude === markerSelected.value.getLatLng().lng)
+    }
+  }
+})
+
 const filteredSites = computed(() => {
   if (searchQuery.value.length < 2) return []
 
   return sitesList.value
     .filter((site) =>
-      site.traductions[0]?.nom.toLowerCase().includes(searchQuery.value.toLowerCase()),
+      getSiteName(site).toLowerCase().includes(searchQuery.value.toLowerCase()),
     )
     .slice(0, 5)
 })
@@ -74,11 +92,23 @@ let markers: any[] = []
 const markerSelected = ref(null)
 const currentSite = ref(null)
 
-// Helpers to read from your API shape
-const getSiteName = (site: any) => site?.traductions?.[0]?.nom ?? ''
-const getSiteDescription = (site: any) => site?.traductions?.[0]?.description ?? ''
+let pinNatural: any = null
+let pinCultural: any = null
+let pinMixed: any = null
+let pinSelected: any = null
+
+// Helpers to read from your API shape - use current locale
+const getSiteName = (site: any) => {
+  const translation = site?.traductions?.find((t: any) => t.codeLangue === locale.value)
+  return translation?.nom ?? site?.traductions?.[0]?.nom ?? ''
+}
+const getSiteDescription = (site: any) => {
+  const translation = site?.traductions?.find((t: any) => t.codeLangue === locale.value)
+  return translation?.description ?? site?.traductions?.[0]?.description ?? ''
+}
 const getSiteCountries = (site: any) => site?.pays?.map((p: any) => p.nom).join(', ') ?? ''
-const getSiteImageUrl = (site: any) => site.imageExtension ? `http://localhost:3333/api/sites/${site.id}/image` : null
+const getSiteImageUrl = (site: any) =>
+  site.imageExtension ? `http://localhost:3333/api/sites/${site.id}/image` : null
 
 const submitSearch = () => {
   if (!searchQuery.value) return
@@ -88,7 +118,7 @@ const submitSearch = () => {
   )
 
   if (!marker) {
-    alert('Aucun résultat trouvé')
+    alert(t('header.noResultsFound'))
     return
   }
 
@@ -105,52 +135,16 @@ const selectSite = (siteName: string) => {
   submitSearch()
 }
 
-onMounted(async () => {
-  if (typeof L === 'undefined') {
-    console.error("Leaflet n'est pas chargé.")
-    return
-  }
-
-  map = L.map('map', {
-    center: [20, 0],
-    zoom: 3,
-    minZoom: 3,
-    maxBounds: L.latLngBounds(L.latLng(-95, -190), L.latLng(95, 190)),
-    maxBoundsViscosity: 1.0,
-  })
-
-  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.{ext}', {
-    attribution:
-      '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    ext: 'jpg',
-  }).addTo(map)
-
-  const pinNatural = L.icon({
-    iconUrl: '/ressources/images/marker-green.png',
-    iconSize: [25, 41],
-    iconAnchor: [12.5, 41],
-  })
-  const pinCultural = L.icon({
-    iconUrl: '/ressources/images/marker-yellow.png',
-    iconSize: [25, 41],
-    iconAnchor: [12.5, 41],
-  })
-  const pinMixed = L.icon({
-    iconUrl: '/ressources/images/marker-blue.png',
-    iconSize: [25, 41],
-    iconAnchor: [12.5, 41],
-  })
-  const pinSelected = L.icon({
-    iconUrl: '/ressources/images/marker-red.png',
-    iconSize: [25, 41],
-    iconAnchor: [12.5, 41],
-  })
-
-  markerCluster = L.markerClusterGroup()
-
+const loadAndDisplaySites = async () => {
   // Fetch from your API instead of the JSON file
   const { data } = await SiteService.getSites()
   sitesList.value = data
+
+  // Clear existing markers
+  if (markerCluster) {
+    markerCluster.clearLayers()
+    markers = []
+  }
 
   data.forEach((site: any) => {
     const name = getSiteName(site)
@@ -186,6 +180,52 @@ onMounted(async () => {
     markerCluster.addLayer(marker)
     markers.push(marker)
   })
+}
+
+onMounted(async () => {
+  if (typeof L === 'undefined') {
+    console.error("Leaflet n'est pas chargé.")
+    return
+  }
+
+  map = L.map('map', {
+    center: [20, 0],
+    zoom: 3,
+    minZoom: 3,
+    maxBounds: L.latLngBounds(L.latLng(-95, -190), L.latLng(95, 190)),
+    maxBoundsViscosity: 1.0,
+  })
+
+  L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_satellite/{z}/{x}/{y}{r}.{ext}', {
+    attribution:
+      '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    ext: 'jpg',
+  }).addTo(map)
+
+  pinNatural = L.icon({
+    iconUrl: '/ressources/images/marker-green.png',
+    iconSize: [25, 41],
+    iconAnchor: [12.5, 41],
+  })
+  pinCultural = L.icon({
+    iconUrl: '/ressources/images/marker-yellow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12.5, 41],
+  })
+  pinMixed = L.icon({
+    iconUrl: '/ressources/images/marker-blue.png',
+    iconSize: [25, 41],
+    iconAnchor: [12.5, 41],
+  })
+  pinSelected = L.icon({
+    iconUrl: '/ressources/images/marker-red.png',
+    iconSize: [25, 41],
+    iconAnchor: [12.5, 41],
+  })
+
+  markerCluster = L.markerClusterGroup()
+
+  await loadAndDisplaySites()
 
   map.addLayer(markerCluster)
 
@@ -221,12 +261,14 @@ onMounted(async () => {
       <div id="map" class="map-container"></div>
       <aside v-show="markerSelected" class="side-panel">
         <div class="filter-box">
-          <label for="filter-category" class="filter-label">Filtrer par catégorie :</label>
+          <label for="filter-category" class="filter-label">{{
+            $t('home.filterByCategory')
+          }}</label>
           <select id="filter-category" class="filter-select">
-            <option value="all">Tous les sites</option>
-            <option value="Natural">Naturel</option>
-            <option value="Cultural">Culturel</option>
-            <option value="Mixed">Mixte</option>
+            <option value="all">{{ $t('home.allSites') }}</option>
+            <option value="Natural">{{ $t('home.natural') }}</option>
+            <option value="Cultural">{{ $t('home.cultural') }}</option>
+            <option value="Mixed">{{ $t('home.mixed') }}</option>
           </select>
         </div>
         <div id="info-panel">
@@ -239,10 +281,11 @@ onMounted(async () => {
             />
             <h2>{{ getSiteName(currentSite) }}</h2>
             <p class="site-category">
-              <strong>Catégorie :</strong> {{ currentSite?.categorie || '' }}
+              <strong>{{ $t('home.category') }}</strong> {{ currentSite?.categorie || '' }}
             </p>
             <p class="site-location">
-              <strong>Pays :</strong> {{ currentSite ? getSiteCountries(currentSite) : '' }}
+              <strong>{{ $t('home.country') }}</strong>
+              {{ currentSite ? getSiteCountries(currentSite) : '' }}
             </p>
             <hr />
             <p class="site-description">{{ getSiteDescription(currentSite) }}</p>
@@ -250,8 +293,8 @@ onMounted(async () => {
               {{
                 currentSite
                   ? currentSite.InWishlist
-                    ? 'Supprimer de ma liste'
-                    : 'Ajouter à ma liste'
+                    ? $t('home.removeFromWishlist')
+                    : $t('home.addToWishlist')
                   : ''
               }}
             </button>
@@ -259,8 +302,8 @@ onMounted(async () => {
               {{
                 currentSite
                   ? currentSite.Visited
-                    ? 'Marquer comme non-visité'
-                    : 'Marquer comme visité'
+                    ? $t('home.markAsNotVisited')
+                    : $t('home.markAsVisited')
                   : ''
               }}
             </button>

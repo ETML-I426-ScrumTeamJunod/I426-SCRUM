@@ -5,13 +5,8 @@ export default class SitesController {
   /**
    * Display a list of resource
    */
-  async index({ request, response }: HttpContext) {
-    const lang = request.input('lang', 'en')
-    response.ok(
-      await Site.query()
-        .preload('traductions', (query) => query.where('code_langue', lang))
-        .preload('pays')
-    )
+  async index({ response }: HttpContext) {
+    response.ok(await Site.query().preload('traductions').preload('pays'))
   }
 
   public async getImage({ params, response }: HttpContext) {

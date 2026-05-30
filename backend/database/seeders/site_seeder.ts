@@ -12,17 +12,28 @@ async function fetchAllRecords() {
   const limit = 100
 
   while (true) {
-    const response = await fetch(
-      `https://data.unesco.org/api/explore/v2.1/catalog/datasets/whc001/records?limit=${limit}&offset=${offset}`
-    )
+    try {
+      const response = await fetch(
+        `https://data.unesco.org/api/explore/v2.1/catalog/datasets/whc001/records?limit=${limit}&offset=${offset}`
+      )
 
-    const data = (await response.json()) as any
+      if (!response.ok) {
+        console.error(`API error: ${response.status} ${response.statusText}`)
+        break
+      }
 
-    if (!data.results || data.results.length === 0) break
+      const data = (await response.json()) as any
 
-    all.push(...data.results)
+      if (!data.results || data.results.length === 0) break
 
-    offset += limit
+      all.push(...data.results)
+      offset += limit
+    } catch (error: any) {
+      console.error('Error fetching records:')
+      console.error(error)
+      console.error('Cause:', error?.cause)
+      break
+    }
   }
 
   return all
@@ -30,17 +41,10 @@ async function fetchAllRecords() {
 
 async function fetchImageAsBuffer(url: string): Promise<{ buffer: Buffer; ext: string } | null> {
   try {
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Referer': 'https://whc.unesco.org/',
-      },
-    })
+    // Cloudflare is blocking the request
+    const response = await fetch(url)
 
-    if (!response.ok) {
-      console.warn(`Image fetch failed: ${response.status} ${response.statusText} — ${url}`)
-      return null
-    }
+    if (!response.ok) return null
 
     const arrayBuffer = await response.arrayBuffer()
     const originalBuffer = Buffer.from(arrayBuffer)

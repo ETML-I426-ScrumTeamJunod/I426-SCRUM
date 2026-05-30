@@ -2,9 +2,14 @@
 import Header from './partials/Header.vue'
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const email = ref('')
 const password = ref('')
+const name = ref('')
+const confirmPassword = ref('')
 
 const route = useRoute()
 
@@ -13,7 +18,7 @@ function isCreate() {
 }
 
 const pageTitle = computed(() => {
-  return isCreate() ? 'Créer un compte' : 'Connexion à votre compte'
+  return isCreate() ? t('auth.register') : t('auth.login')
 })
 
 // Methods
@@ -46,55 +51,55 @@ const handleLogin = () => {
             </g>
           </g>
         </svg>
-        <span>Retour à la Carte</span>
+        <span>{{ $t('auth.backToMap') }}</span>
       </a>
 
       <div class="flex">
         <h1>{{ pageTitle }}</h1>
         <form @submit.prevent="handleLogin">
           <div v-if="isCreate()" class="form-group">
-            <label for="name">Votre nom</label>
-            <input type="text" id="name" v-model="name" placeholder="Entrez votre nom" required />
+            <label for="name">{{ $t('auth.email') }}</label>
+            <input type="text" id="name" v-model="name" :placeholder="$t('auth.email')" required />
           </div>
 
           <div class="form-group">
-            <label for="email">Email</label>
+            <label for="email">{{ $t('auth.email') }}</label>
             <input
               type="email"
               id="email"
               v-model="email"
-              placeholder="Entrez votre email"
+              :placeholder="$t('auth.email')"
               required
             />
           </div>
 
           <div class="form-group">
-            <label for="password">Mot de Passe</label>
+            <label for="password">{{ $t('auth.password') }}</label>
             <input
               type="password"
               id="password"
               v-model="password"
-              placeholder="Entrez votre mot de passe"
+              :placeholder="$t('auth.password')"
               required
             />
           </div>
 
           <div v-if="isCreate()" class="form-group">
-            <label for="confirm-password">Confirmer le Mot de Passe</label>
+            <label for="confirm-password">{{ $t('auth.confirmPassword') }}</label>
             <input
               type="password"
               id="confirm-password"
               v-model="confirmPassword"
-              placeholder="Confirmez votre mot de passe"
+              :placeholder="$t('auth.confirmPassword')"
               required
             />
           </div>
 
           <button type="submit">
-            {{ isCreate() ? 'Création' : 'Connexion' }}
+            {{ isCreate() ? $t('auth.register') : $t('auth.login') }}
           </button>
           <RouterLink :to="isCreate() ? '/login' : '/register'" class="register-link">
-            {{ isCreate() ? "J'ai déjà un compte" : "S'inscrire" }}
+            {{ isCreate() ? $t('auth.haveAccount') : $t('auth.noAccount') }}
           </RouterLink>
         </form>
       </div>

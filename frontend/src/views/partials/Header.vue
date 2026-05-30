@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { ref, inject, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
+
+const { locale } = useI18n()
 
 const { searchQuery, searchTrigger, setCategory: globalSetCategory } = inject('searchState') as any
 
@@ -41,11 +44,16 @@ const setCategory = (category: string) => {
   globalSetCategory(category)
   isFilterOpen.value = false
 }
+
+const switchLanguage = (lang: string) => {
+  locale.value = lang
+  localStorage.setItem('locale', lang)
+}
 </script>
 <template>
   <header>
     <img src="../../assets/BSI_Logo.png" height="50" />
-    <search v-if="$route.path === '/'" class="search-container">
+    <div v-if="$route.path === '/'" class="search-container">
       <form @submit.prevent="submitSearch" class="search-form">
         <button type="button" class="filter-toggle-btn" @click.stop="isFilterOpen = !isFilterOpen">
           <img src="../../assets/filter-icon.png" alt="filtre" height="20" />
@@ -55,7 +63,7 @@ const setCategory = (category: string) => {
           type="search"
           v-model="searchQuery"
           @focus="isFilterOpen = false"
-          placeholder="Rechercher un site..."
+          :placeholder="$t('header.searchPlaceholder')"
           class="search-input"
         />
 
@@ -65,10 +73,10 @@ const setCategory = (category: string) => {
       </form>
 
       <div v-if="isFilterOpen" class="filter-dropdown">
-        <div @click="setCategory('all')" class="filter-item">Tous les sites</div>
-        <div @click="setCategory('Natural')" class="filter-item">Naturel</div>
-        <div @click="setCategory('Cultural')" class="filter-item">Culturel</div>
-        <div @click="setCategory('Mixed')" class="filter-item">Mixte</div>
+        <div @click="setCategory('all')" class="filter-item">{{ $t('home.allSites') }}</div>
+        <div @click="setCategory('Natural')" class="filter-item">{{ $t('home.natural') }}</div>
+        <div @click="setCategory('Cultural')" class="filter-item">{{ $t('home.cultural') }}</div>
+        <div @click="setCategory('Mixed')" class="filter-item">{{ $t('home.mixed') }}</div>
       </div>
 
       <ul v-if="filteredSites.length > 0" class="suggestions-list">
@@ -76,21 +84,25 @@ const setCategory = (category: string) => {
           <span v-html="highlightMatch(site.site)"></span>
         </li>
       </ul>
-    </search>
+    </div>
     <nav>
       <ul>
         <li>
-          <RouterLink to="/" class="nav-btn">Accueil</RouterLink>
-          <RouterLink to="/stats" class="nav-btn">Stats</RouterLink>
-          <RouterLink to="/wishlist" class="nav-btn">Listes</RouterLink>
+          <RouterLink to="/" class="nav-btn">{{ $t('header.home') }}</RouterLink>
+          <RouterLink to="/stats" class="nav-btn">{{ $t('header.stats') }}</RouterLink>
+          <RouterLink to="/wishlist" class="nav-btn">{{ $t('header.lists') }}</RouterLink>
         </li>
       </ul>
     </nav>
     <div class="right-actions">
       <div class="lang-switch">
-        <span class="lang active">fr</span>
+        <span class="lang" :class="{ active: locale === 'fr' }" @click="switchLanguage('fr')"
+          >fr</span
+        >
         <span class="separator">|</span>
-        <span class="lang">en</span>
+        <span class="lang" :class="{ active: locale === 'en' }" @click="switchLanguage('en')"
+          >en</span
+        >
       </div>
 
       <div class="profile-menu">
