@@ -1,14 +1,27 @@
 <script setup lang="ts">
-import { ref, inject, computed, onMounted } from 'vue'
+import { ref, inject, computed, onMounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter, useRoute } from 'vue-router'
+import { getUser, logout } from '../../services/AuthService'
 
 const { locale } = useI18n()
+const router = useRouter()
+const route = useRoute()
 
 const { searchQuery, searchTrigger, setCategory: globalSetCategory } = inject('searchState') as any
 
 const isFilterOpen = ref(false)
-const userConnected = false
-const userId = 0
+
+const user = ref<any>(getUser())
+const userConnected = computed(() => !!user.value)
+
+watch(
+  () => route.path,
+  () => {
+    user.value = getUser()
+  },
+)
+
 const sitesList = ref<any[]>([])
 
 onMounted(async () => {
@@ -48,6 +61,12 @@ const setCategory = (category: string) => {
 const switchLanguage = (lang: string) => {
   locale.value = lang
   localStorage.setItem('locale', lang)
+}
+
+const handleLogout = async () => {
+  await logout()
+  user.value = null
+  router.push('/')
 }
 </script>
 <template>
@@ -106,7 +125,7 @@ const switchLanguage = (lang: string) => {
       </div>
 
       <div class="profile-menu">
-        <RouterLink :to="userConnected ? { name: 'profile', params: { id: userId } } : '/login'">
+        <RouterLink :to="userConnected ? '/wishlist' : '/login'">
           <svg
             class="profile-icon"
             viewBox="0 0 24 24"
@@ -120,6 +139,24 @@ const switchLanguage = (lang: string) => {
           </svg>
         </RouterLink>
       </div>
+
+      <button
+        v-if="userConnected"
+        class="logout-btn"
+        @click="handleLogout"
+        :title="$t('auth.logout')"
+      >
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M16 17L21 12L16 7M21 12H9M9 21H5C3.89543 21 3 20.1046 3 19V5C3 3.89543 3.89543 3 5 3H9"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        <span>{{ $t('Déconnexion') }}</span>
+      </button>
     </div>
   </header>
 </template>
@@ -307,6 +344,30 @@ li {
   color: rgb(255, 255, 255);
 }
 
+.logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #881a16;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease;
+}
+
+.logout-btn:hover {
+  background-color: #58100e;
+}
+
+.logout-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 .search-input::-webkit-search-cancel-button {
   cursor: pointer;
   transform: scale(1.5);
@@ -374,6 +435,14 @@ li {
   .right-actions {
     margin-left: auto;
     gap: 1rem;
+  }
+
+  .logout-btn span {
+    display: none;
+  }
+
+  .logout-btn {
+    padding: 0.5rem;
   }
 
   .search-container {

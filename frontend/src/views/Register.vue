@@ -1,39 +1,74 @@
 <script setup>
 import Header from './partials/Header.vue'
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { register } from '@/services/AuthService'
 
 const { t } = useI18n()
+const router = useRouter()
 
+const name = ref('')
 const email = ref('')
 const password = ref('')
-const name = ref('')
 const confirmPassword = ref('')
+const loading = ref(false)
+const error = ref('')
 
-const route = useRoute()
+const validateForm = () => {
+  if (!name.value || !email.value || !password.value || !confirmPassword.value) {
+    error.value = 'Veuillez remplir tous les champs'
+    return false
+  }
 
-function isCreate() {
-  return route.path === '/register'
+  if (password.value !== confirmPassword.value) {
+    error.value = 'Les mots de passe ne correspondent pas'
+    return false
+  }
+
+  if (password.value.length < 8) {
+    error.value = 'Le mot de passe doit contenir au moins 8 caractères'
+    return false
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(email.value)) {
+    error.value = 'Veuillez entrer une adresse email valide'
+    return false
+  }
+
+  return true
 }
 
-const pageTitle = computed(() => {
-  return isCreate() ? t('auth.register') : t('auth.login')
-})
+const handleRegister = async () => {
+  if (!validateForm()) {
+    return
+  }
 
-// Methods
-const handleLogin = () => {
-  console.log('Email:', email.value)
-  console.log('Password:', password.value)
-  alert(`Logging in as ${email.value}`)
+  loading.value = true
+  error.value = ''
+
+  try {
+    await register({
+      nom: name.value,
+      email: email.value,
+      motDePasse: password.value,
+    })
+
+    router.push('/')
+  } catch (err) {
+    error.value = err.message || "Erreur lors de l'inscription. Veuillez réessayer."
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
 <template>
-  <main class="login-page">
-    <div class="login-container">
-      <a href="/" class="back-btn"
-        ><svg
+  <main class="register-page">
+    <div class="register-container">
+      <a href="/" class="back-btn">
+        <svg
           viewBox="0 0 20 20"
           version="1.1"
           xmlns="http://www.w3.org/2000/svg"
@@ -55,11 +90,23 @@ const handleLogin = () => {
       </a>
 
       <div class="flex">
-        <h1>{{ pageTitle }}</h1>
-        <form @submit.prevent="handleLogin">
-          <div v-if="isCreate()" class="form-group">
-            <label for="name">{{ $t('auth.email') }}</label>
-            <input type="text" id="name" v-model="name" :placeholder="$t('auth.email')" required />
+        <h1>{{ $t('auth.register') }}</h1>
+
+        <div v-if="error" class="error-message">
+          {{ error }}
+        </div>
+
+        <form @submit.prevent="handleRegister">
+          <div class="form-group">
+            <label for="name">{{ $t('auth.name') }}</label>
+            <input
+              type="text"
+              id="name"
+              v-model="name"
+              :placeholder="$t('auth.name')"
+              required
+              :disabled="loading"
+            />
           </div>
 
           <div class="form-group">
@@ -70,6 +117,7 @@ const handleLogin = () => {
               v-model="email"
               :placeholder="$t('auth.email')"
               required
+              :disabled="loading"
             />
           </div>
 
@@ -81,10 +129,12 @@ const handleLogin = () => {
               v-model="password"
               :placeholder="$t('auth.password')"
               required
+              :disabled="loading"
             />
+            <small class="password-hint">Au moins 8 caractères</small>
           </div>
 
-          <div v-if="isCreate()" class="form-group">
+          <div class="form-group">
             <label for="confirm-password">{{ $t('auth.confirmPassword') }}</label>
             <input
               type="password"
@@ -92,14 +142,16 @@ const handleLogin = () => {
               v-model="confirmPassword"
               :placeholder="$t('auth.confirmPassword')"
               required
+              :disabled="loading"
             />
           </div>
 
-          <button type="submit">
-            {{ isCreate() ? $t('auth.register') : $t('auth.login') }}
+          <button type="submit" :disabled="loading">
+            {{ loading ? 'Inscription en cours...' : $t('auth.register') }}
           </button>
-          <RouterLink :to="isCreate() ? '/login' : '/register'" class="register-link">
-            {{ isCreate() ? $t('auth.haveAccount') : $t('auth.noAccount') }}
+
+          <RouterLink to="/login" class="login-link">
+            {{ $t('auth.haveAccount') }}
           </RouterLink>
         </form>
       </div>
@@ -108,11 +160,12 @@ const handleLogin = () => {
 </template>
 
 <style scoped>
-.login-page {
+.register-page {
   width: 100%;
   background-color: #30322e;
   color: white;
   height: 100%;
+  min-height: 100vh;
 }
 
 .flex {
@@ -121,18 +174,14 @@ const handleLogin = () => {
   align-items: center;
 }
 
-.login-container {
+.register-container {
   padding: 2rem;
 }
 
-.login-container h1 {
+.register-container h1 {
   text-align: center;
   margin-bottom: 1.5rem;
   font-size: 3rem;
-}
-
-.login-container h1,
-.form-group label {
   font-weight: bold;
 }
 
@@ -143,6 +192,16 @@ const handleLogin = () => {
 .form-group label {
   display: inline-block;
   margin: 0 1rem;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.password-hint {
+  display: block;
+  margin-top: 0.25rem;
+  margin-left: 1rem;
+  font-size: 0.9rem;
+  color: #b0b0b0;
 }
 
 input {
@@ -151,6 +210,13 @@ input {
   margin-top: 0.25rem;
   border-radius: 1rem;
   border: 0;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .back-btn,
@@ -164,20 +230,23 @@ button {
   cursor: pointer;
   text-decoration: none;
   font-size: 1.1rem;
+  transition: background-color 0.3s ease;
 }
 
-button[type='submit'],
-.form-group label {
-  font-size: 1.2rem;
-}
 button[type='submit'] {
   padding: 1rem 0;
   font-weight: bold;
+  font-size: 1.2rem;
 }
 
 .back-btn:hover,
-button:hover {
+button:hover:not(:disabled) {
   background-color: #58100eff;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 .back-btn {
@@ -207,23 +276,43 @@ button:hover {
   paint-order: stroke;
 }
 
-.register-link {
+.login-link {
   margin-top: 0.5rem;
-
   color: white;
   text-align: center;
   display: block;
+  text-decoration: none;
+  transition: opacity 0.3s ease;
+}
+
+.login-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+.error-message {
+  background-color: #c41e3a;
+  color: white;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  width: 100%;
 }
 
 @media (max-width: 768px) {
-  .flex h1 {
-    font-size: 33px;
+  .register-container h1 {
+    font-size: 2rem;
   }
 
-  .login-container {
+  .register-container {
     margin: 0;
     height: 100%;
     overflow: hidden;
+  }
+
+  .form-group label {
+    font-size: 1rem;
   }
 }
 </style>

@@ -1,18 +1,18 @@
 import hash from '@adonisjs/core/services/hash'
 import { compose } from '@adonisjs/core/helpers'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
+import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import { BaseModel, column, manyToMany } from '@adonisjs/lucid/orm'
 import type { ManyToMany } from '@adonisjs/lucid/types/relations'
 import Site from '#models/site'
 import { DateTime } from 'luxon'
 
-export default class User extends compose(
-  BaseModel,
-  withAuthFinder(hash, {
-    uids: ['email'],
-    passwordColumnName: 'motDePasse',
-  })
-) {
+const AuthFinder = withAuthFinder(() => hash, {
+  uids: ['email'],
+  passwordColumnName: 'motDePasse',
+})
+
+export default class User extends compose(BaseModel, AuthFinder) {
   public static table = 't_user'
 
   @column({ isPrimary: true })
@@ -48,8 +48,11 @@ export default class User extends compose(
   declare wishSites: ManyToMany<typeof Site>
 
   @column.dateTime({ autoCreate: true })
-    declare createdAt: DateTime
-  
-    @column.dateTime({ autoCreate: true, autoUpdate: true })
-    declare updatedAt: DateTime
+  declare createdAt: DateTime
+
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime
+
+  // Provider de tokens d'accès
+  static accessTokens = DbAccessTokensProvider.forModel(User)
 }

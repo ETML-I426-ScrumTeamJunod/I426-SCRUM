@@ -26,6 +26,7 @@ const messages = {
       backToMap: 'Back to Map',
       login: 'Login to your account',
       register: 'Create an account',
+      name: 'Full Name',
       email: 'Email',
       password: 'Password',
       confirmPassword: 'Confirm Password',
@@ -78,11 +79,12 @@ const messages = {
       backToMap: 'Retour à la Carte',
       login: 'Connexion à votre compte',
       register: 'Créer un compte',
+      name: 'Nom complet',
       email: 'Email',
       password: 'Mot de passe',
       confirmPassword: 'Confirmer le mot de passe',
       submit: 'Envoyer',
-      noAccount: "Pas encore de compte?",
+      noAccount: 'Pas encore de compte?',
       haveAccount: 'Vous avez déjà un compte?',
     },
     stats: {
@@ -115,4 +117,3 @@ const i18n = createI18n({
 })
 
 export default i18n
-
