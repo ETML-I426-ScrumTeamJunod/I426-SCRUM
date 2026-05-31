@@ -55,7 +55,11 @@ watch(locale, async () => {
       }
     })
     if (markerSelected.value) {
-      currentSite.value = sitesList.value.find((s) => s.latitude === markerSelected.value.getLatLng().lat && s.longitude === markerSelected.value.getLatLng().lng)
+      currentSite.value = sitesList.value.find(
+        (s) =>
+          s.latitude === markerSelected.value.getLatLng().lat &&
+          s.longitude === markerSelected.value.getLatLng().lng,
+      )
     }
   }
 })
@@ -64,9 +68,7 @@ const filteredSites = computed(() => {
   if (searchQuery.value.length < 2) return []
 
   return sitesList.value
-    .filter((site) =>
-      getSiteName(site).toLowerCase().includes(searchQuery.value.toLowerCase()),
-    )
+    .filter((site) => getSiteName(site).toLowerCase().includes(searchQuery.value.toLowerCase()))
     .slice(0, 5)
 })
 
@@ -111,7 +113,11 @@ const toggleWishlist = async () => {
     return
   }
   const id = (currentSite.value as any).id
-  if (isInWishlist.value) {
+  if (isVisited.value) {
+    await SiteService.removeFromVisited(id)
+    await SiteService.addToWishlist(id)
+    wishlistIds.value = [...wishlistIds.value, id]
+  } else if (isInWishlist.value) {
     await SiteService.removeFromWishlist(id)
     wishlistIds.value = wishlistIds.value.filter((i) => i !== id)
   } else {
@@ -130,6 +136,10 @@ const toggleVisited = async () => {
   if (isVisited.value) {
     await SiteService.removeFromVisited(id)
     visitedIds.value = visitedIds.value.filter((i) => i !== id)
+  } else if (isInWishlist.value) {
+    await SiteService.removeFromWishlist(id)
+    await SiteService.markAsVisited(id)
+    visitedIds.value = [...visitedIds.value, id]
   } else {
     await SiteService.markAsVisited(id)
     visitedIds.value = [...visitedIds.value, id]
