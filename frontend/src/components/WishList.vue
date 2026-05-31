@@ -54,22 +54,33 @@ onMounted(async () => {
 
       <section class="stats-card">
         <div class="stats-header">
-          <h2 class="stats-main-title">Progression UNESCO</h2>
-          <p class="stats-subtitle">Votre voyage autour du monde</p>
+          <h2 class="stats-main-title">{{ $t('wishlist.unescoProgress') }}</h2>
+          <p class="stats-subtitle">{{ $t('wishlist.yourTrip') }}</p>
         </div>
         <div class="progress-container">
-          <progress :value="visitedCount" :max="totalSites || 1" style="border-radius: 10px"></progress>
+          <progress
+            :value="visitedCount"
+            :max="totalSites || 1"
+            style="border-radius: 10px"
+          ></progress>
           <div class="progress-info">
-            <span>Vous avez visité {{ visitedCount }} sites sur {{ totalSites }} inscrit dans votre liste!</span>
-            <span class="percentage-label">{{ progressPercent }}%<br /><small style="font-weight: bold; font-size: 20">complété</small></span>
+            <span
+              >{{ $t('wishlist.visited1') }} {{ visitedCount }} {{ $t('wishlist.visited2') }}
+              {{ totalSites }} {{ $t('wishlist.visited3') }}</span
+            >
+            <span class="percentage-label"
+              >{{ progressPercent }}%<br /><small style="font-weight: bold; font-size: 20">{{
+                $t('wishlist.completed')
+              }}</small></span
+            >
           </div>
         </div>
       </section>
 
-      <h2 class="list-title">Votre Liste</h2>
-      <div v-if="loading" class="loading-msg">Chargement...</div>
+      <h2 class="list-title">{{ $t('wishlist.wishlist') }}</h2>
+      <div v-if="loading" class="loading-msg">{{ $t('wishlist.loading') }}</div>
       <div v-else class="sites-grid">
-        <p v-if="wishlist.length === 0" class="visited-or-not">Vous n'avez aucun site dans votre liste pour le moment</p>
+        <p v-if="wishlist.length === 0" class="visited-or-not">{{ $t('wishlist.empty') }}</p>
         <div v-for="site in wishlist" :key="site.id" class="site-card">
           <div class="image-box">
             <img
@@ -86,10 +97,12 @@ onMounted(async () => {
         </div>
       </div>
 
-      <h2 class="list-title">Sites visités</h2>
-      <div v-if="loading" class="loading-msg">Chargement...</div>
+      <h2 class="list-title">{{ $t('wishlist.visitedSites') }}</h2>
+      <div v-if="loading" class="loading-msg">{{ $t('wishlist.loading') }}</div>
       <div v-else class="sites-grid">
-        <p v-if="visited.length === 0" class="visited-or-not">Vous n'avez visité aucun site pour le moment</p>
+        <p v-if="visited.length === 0" class="visited-or-not">
+          {{ $t('wishlist.emptyVisited') }}
+        </p>
         <div v-for="site in visited" :key="site.id" class="site-card">
           <div class="image-box">
             <img
