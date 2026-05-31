@@ -2,10 +2,12 @@
 import { onMounted, ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import Header from './partials/Header.vue'
+import { useRouter } from 'vue-router'
 import StatsCard from '@/components/Stats-card.vue'
 import siteServices from '@/services/SiteService.js'
-import { getUser } from '@/services/AuthService.js'
+import { getUser, isAuthenticated } from '@/services/AuthService.js'
 
+const router = useRouter()
 const { locale, t } = useI18n()
 
 const user = ref(getUser())
@@ -15,6 +17,11 @@ const chartKey = ref(0)
 const sites = ref([])
 
 onMounted(async () => {
+  if (!isAuthenticated()) {
+    router.push('/login')
+    return
+  }
+
   try {
     const response = await siteServices.getUserLists()
     sites.value = response.data.visited
@@ -198,20 +205,20 @@ const graphPercentageByTypeOfSite = computed(() => ({
     <h1>{{ $t('stats.greetings') + user?.nom ?? '' }}</h1>
     <div id="statistics">
       <StatsCard
-        :key="locale"
+        :key="locale + chartKey"
         title="Exploration"
         class="stats"
         :graph="graphCountByRegion"
         :topValue="topSiteRegion()"
       />
       <StatsCard
-        :key="locale"
+        :key="locale + chartKey"
         :title="$t('stats.visitedSites')"
         class="stats"
         :graph="graphPercentageOfDiscovery"
       />
       <StatsCard
-        :key="locale"
+        :key="locale + chartKey"
         :title="$t('stats.distribution')"
         class="stats"
         :graph="graphPercentageByTypeOfSite"
