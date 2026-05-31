@@ -155,7 +155,7 @@ const handleLogout = async () => {
             stroke-linejoin="round"
           />
         </svg>
-        <span>{{ $t('Déconnexion') }}</span>
+        <span>{{ $t('auth.logout') }}</span>
       </button>
     </div>
   </header>

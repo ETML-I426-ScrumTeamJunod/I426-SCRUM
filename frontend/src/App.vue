@@ -42,6 +42,5 @@ provide('searchState', {
 }
 
 @media (max-width: 768px) {
-
 }
 </style>

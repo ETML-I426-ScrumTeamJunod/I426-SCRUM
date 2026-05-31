@@ -1,9 +1,12 @@
 <script setup>
 import { onMounted, ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import Header from './partials/Header.vue'
 import StatsCard from '@/components/Stats-card.vue'
 import siteServices from '@/services/SiteService.js'
 import { getUser } from '@/services/AuthService.js'
+
+const { locale, t } = useI18n()
 
 const user = ref(getUser())
 const totalOfSites = 1247
@@ -69,33 +72,33 @@ const graphPercentageByTypeOfSiteData = computed(() => [
 
 const topSiteRegion = () => {
   const regionNames = [
-    'Europe et Amérique du nord',
-    'Amérique latine et Caraïbes',
-    'Afrique',
-    'Asie et Océan Pacifique',
-    'États arabes',
+    t('stats.europeAmerica'),
+    t('stats.latinAmerica'),
+    t('stats.africa'),
+    t('stats.asiaOceania'),
+    t('stats.arabicStates'),
   ]
   const data = graphCountByRegionData.value
   const maxVal = Math.max(...data)
 
-  if (maxVal === 0) return 'Aucune donnée'
+  if (maxVal === 0) return t('stats.noData')
 
   const indices = data.reduce((acc, val, i) => (val === maxVal ? [...acc, i] : acc), [])
 
-  if (indices.length > 1) return 'Égalité'
+  if (indices.length > 1) return t('stats.draw')
   return regionNames[indices[0]]
 }
 
 const topSiteType = () => {
-  const typeNames = ['culturels', 'naturels', 'mixte']
+  const typeNames = [t('stats.cultural'), t('stats.natural'), t('stats.mixt')]
   const data = graphPercentageByTypeOfSiteData.value
   const maxVal = Math.max(...data)
 
-  if (maxVal === 0) return 'Aucune donnée'
+  if (maxVal === 0) return t('stats.noData')
 
   const indices = data.reduce((acc, val, i) => (val === maxVal ? [...acc, i] : acc), [])
 
-  if (indices.length > 1) return 'Égalité'
+  if (indices.length > 1) return t('stats.draw')
   return typeNames[indices[0]]
 }
 
@@ -131,11 +134,11 @@ const graphCountByRegion = computed(() => ({
   },
   xaxis: {
     categories: [
-      'Europe et Amérique du nord',
-      'Amérique latine et Caraïbes',
-      'Afrique',
-      'Asie et Océan Pacifique',
-      'États arabes',
+      t('stats.europeAmerica'),
+      t('stats.latinAmerica'),
+      t('stats.africa'),
+      t('stats.asiaOceania'),
+      t('stats.arabicStates'),
     ],
     labels: {
       rotate: -30,
@@ -144,7 +147,7 @@ const graphCountByRegion = computed(() => ({
   },
   yaxis: {
     title: {
-      text: 'Nombre de sites',
+      text: t('stats.nbrSites'),
       offsetX: -4,
     },
     stepSize: getStepSize(Math.max(...graphCountByRegionData.value, 0)),
@@ -152,7 +155,7 @@ const graphCountByRegion = computed(() => ({
   fill: { opacity: 1 },
   tooltip: {
     y: {
-      formatter: (val) => val + ' sites explorés',
+      formatter: (val) => val + t('stats.exploredSites'),
     },
   },
 }))
@@ -168,7 +171,7 @@ const graphPercentageOfDiscovery = computed(() => ({
       hollow: { size: '70%' },
     },
   },
-  labels: ['Découverte du monde'],
+  labels: [t('stats.discover')],
 }))
 
 const graphPercentageByTypeOfSite = computed(() => ({
@@ -177,7 +180,7 @@ const graphPercentageByTypeOfSite = computed(() => ({
     width: 380,
     type: 'pie',
   },
-  labels: ['Culturels', 'Naturels', 'Mixtes'],
+  labels: [t('stats.cultural'), t('stats.natural'), t('stats.mixt')],
   legend: { position: 'bottom' },
   responsive: [
     {
@@ -192,24 +195,24 @@ const graphPercentageByTypeOfSite = computed(() => ({
 
 <template>
   <main>
-    <h1>Bonjour {{ user?.nom ?? '' }}</h1>
+    <h1>{{ $t('stats.greetings') + user?.nom ?? '' }}</h1>
     <div id="statistics">
       <StatsCard
-        :key="chartKey"
+        :key="locale"
         title="Exploration"
         class="stats"
         :graph="graphCountByRegion"
         :topValue="topSiteRegion()"
       />
       <StatsCard
-        :key="chartKey"
-        title="Sites visités"
+        :key="locale"
+        :title="$t('stats.visitedSites')"
         class="stats"
         :graph="graphPercentageOfDiscovery"
       />
       <StatsCard
-        :key="chartKey"
-        title="Répartition"
+        :key="locale"
+        :title="$t('stats.distribution')"
         class="stats"
         :graph="graphPercentageByTypeOfSite"
         :topValue="topSiteType()"
