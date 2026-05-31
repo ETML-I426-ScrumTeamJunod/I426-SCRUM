@@ -36,23 +36,39 @@ onMounted(async () => {
 </template>
 
 <style>
-.card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: nowrap;
-  box-shadow: 4px 4px 8px rgb(152, 152, 152);
-  color: var(--color-text);
-  background-color: var(--color-background-soft);
-  border-radius: 16px;
-  margin: 32px;
-  width: 660px;
-  height: 440px;
-  padding: 8px;
+/* Titre de la carte */
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 5px 0;
 }
-h3 {
-  font-size: 200%;
+
+/* Sous-titre ou description en petit */
+.card-subtitle {
+  font-size: 0.8rem;
+  color: #555555;
+  margin-bottom: 20px;
+}
+
+/* Badge rouge "TOP : ..." en haut à droite */
+.top-badge {
+  position: absolute;
+  top: 30px;
+  right: 30px;
+  background-color: #b30000; /* Rouge bordeaux de la maquette */
+  color: #ffffff;
+  font-size: 0.75rem;
   font-weight: bold;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 6px;
+}
+
+/* Conteneur pour le graphique ApexCharts */
+.chart-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>

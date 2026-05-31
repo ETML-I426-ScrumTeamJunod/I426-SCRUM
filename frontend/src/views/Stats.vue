@@ -1,220 +1,119 @@
 <script setup>
+import { onMounted, ref, computed } from 'vue'
 import Header from './partials/Header.vue'
 import StatsCard from '@/components/Stats-card.vue'
+import siteServices from '@/services/SiteService.js'
+import { getUser } from '@/services/AuthService.js'
 
-//fake data for the example
-const user = 'Bertrand'
+const user = ref(getUser())
 const totalOfSites = 1247
-const markedSites = [
-  {
-    id: 1,
-    category: 'Natural',
-    region: 'Africa',
-    states: ['Benin', 'Burkina Faso', 'Niger'],
-    coordinates: { lon: 2.4877777778, lat: 11.8841666667 },
-    visited: false,
-    wishlist: true,
-  },
-  {
-    id: 2,
-    category: 'Cultural',
-    region: 'Europe and North America',
-    states: ['Bosnia and Herzegovina', 'Croatia', 'Serbia', 'Montenegro'],
-    coordinates: { lon: 17.9240527778, lat: 43.0922138889 },
-    visited: true,
-    wishlist: false,
-  },
-  {
-    id: 3,
-    category: 'Natural',
-    region: 'Africa',
-    states: ['Cameroon', 'Central African Republic', 'Congo'],
-    coordinates: { lon: 16.5541666667, lat: 2.6094444444 },
-    visited: true,
-    wishlist: false,
-  },
-  {
-    id: 4,
-    category: 'Natural',
-    region: 'Europe and North America',
-    states: ['Canada', 'United States of America'],
-    coordinates: { lon: -140.9919722, lat: 61.19758333 },
-    visited: true,
-    wishlist: true,
-  },
-  {
-    id: 5,
-    category: 'Cultural',
-    region: 'Latin America and the Caribbean',
-    states: ['Argentina'],
-    coordinates: { lon: -70.66666667, lat: -47.15 },
-    visited: false,
-    wishlist: true,
-  },
-  {
-    id: 6,
-    category: 'Natural',
-    region: 'Latin America and the Caribbean',
-    states: ['Argentina'],
-    coordinates: { lon: -64.0, lat: -42.5 },
-    visited: true,
-    wishlist: false,
-  },
-  {
-    id: 7,
-    category: 'Natural',
-    region: 'Latin America and the Caribbean',
-    states: ['Argentina'],
-    coordinates: { lon: -68.0, lat: -30.0 },
-    visited: false,
-    wishlist: true,
-  },
-  {
-    id: 8,
-    category: 'Cultural',
-    region: 'Europe and North America',
-    states: ['Armenia'],
-    coordinates: { lon: 44.29514, lat: 40.15931 },
-    visited: true,
-    wishlist: false,
-  },
-  {
-    id: 9,
-    category: 'Natural',
-    region: 'Asia and the Pacific',
-    states: ['Australia'],
-    coordinates: { lon: 158.8955556, lat: -54.59472222 },
-    visited: false,
-    wishlist: true,
-  },
-]
+const chartKey = ref(0)
 
-//fonctions utiles
-const countSitesByRegion = (regionName) => {
-  return markedSites.filter((site) => site.region === regionName && site.visited === true).length
+const sites = ref([])
+
+onMounted(async () => {
+  try {
+    const response = await siteServices.getUserLists()
+    sites.value = response.data.visited
+    chartKey.value++
+    console.log('Voici les sites: ', sites.value)
+  } catch (error) {
+    console.error('Erreur lors de la récupération des sites', error)
+  }
+})
+
+// Fonctions utiles
+const countSitesByRegion = (region) => {
+  return sites.value.filter((site) => site.regionId === region).length
 }
+
 const getStepSize = (max) => {
-  //permet de définir la graduation en fonction des valeurs (axe Y graphe 1)
   if (max <= 10) return 2
   if (max <= 50) return 10
   if (max <= 100) return 20
   if (max <= 500) return 100
   return 200
 }
+
 const numberOfSitesVisited = () => {
-  return markedSites.filter((site) => site.visited === true).length
-}
-const percentageVisited = ((numberOfSitesVisited() / totalOfSites) * 100).toFixed(2) // -> string
-const countSitesByCategory = (category) => {
-  return markedSites.filter((site) => site.category === category).length
+  return sites.value.length
 }
 
-// graphs
+const countSitesByCategory = (category) => {
+  return sites.value.filter((site) => site.categorie === category).length
+}
+
+// Dimensions des graphes
 const chartsHeight = 360
 const chartsWidth = 650
 
-//data 1
-const graphCountByRegionData = [
-  //utile afin de déterminer la stepsize du graphe 1 (graduation de l'axe Y)
-  countSitesByRegion('Europe and North America'),
-  countSitesByRegion('Latin America and the Caribbean'),
-  countSitesByRegion('Africa'),
-  countSitesByRegion('Asia ans the Pacific'),
-  countSitesByRegion('Arab States'),
-]
-const topSiteRegion = () => {
-  let max = 0
-  let draw = false
-  let maxIndex = ''
-  //trouver la catégorie avec le plus de sites
-  for (let index in graphCountByRegionData) {
-    if (max < graphCountByRegionData[index]) {
-      max = graphCountByRegionData[index]
-      maxIndex = index
-    } else if (max === graphCountByRegionData[index]) {
-      draw = true
-    }
-  }
-  //donner à max la valeur du nom du type de site le plus récurrent
-  switch (Number(maxIndex)) {
-    case 0:
-      max = 'Europe et Amérique du nord'
-      break
-    case 1:
-      max = 'Amérique latine et Caraïbes'
-      break
-    case 2:
-      max = 'Afrique'
-      break
-    case 3:
-      max = 'Asie et Océan Pacifique'
-      break
-    case 4:
-      max = 'États arabes'
-      break
-  }
-  //si égalité
-  if (draw) {
-    max = 'égalité'
-  }
+// ─── Data computed ───────────────────────────────────────────
 
-  return max
-}
-//data 3
-const graphPercentageByTypeOfSiteData = [
+const graphCountByRegionData = computed(() => [
+  countSitesByRegion(1), // Europe and North America
+  countSitesByRegion(2), // Latin America and the Caribbean
+  countSitesByRegion(3), // Africa
+  countSitesByRegion(4), // Asia and the Pacific
+  countSitesByRegion(5), // Arab States
+])
+
+const percentageVisited = computed(() => ((numberOfSitesVisited() / totalOfSites) * 100).toFixed(2))
+
+const graphPercentageByTypeOfSiteData = computed(() => [
   countSitesByCategory('Cultural'),
   countSitesByCategory('Natural'),
   countSitesByCategory('Mixed'),
-]
-const topSiteType = () => {
-  let max = 0
-  let draw = false
-  let maxIndex = ''
-  //trouver la catégorie avec le plus de sites
-  for (let index in graphPercentageByTypeOfSiteData) {
-    if (max < graphPercentageByTypeOfSiteData[index]) {
-      max = graphPercentageByTypeOfSiteData[index]
-      maxIndex = index
-    } else if (max === graphPercentageByTypeOfSiteData[index]) {
-      draw = true
-    }
-  }
-  //donner à max la valeur du nom du type de site le plus récurrent
-  switch (Number(maxIndex)) {
-    case 0:
-      max = 'culturels'
-      break
-    case 1:
-      max = 'naturels'
-      break
-    case 2:
-      max = 'mixte'
-      break
-  }
-  //si égalité
-  if (draw) {
-    max = 'égalité'
-  }
+])
 
-  return max
+// ─── Fonctions topValue ───────────────────────────────────────
+
+const topSiteRegion = () => {
+  const regionNames = [
+    'Europe et Amérique du nord',
+    'Amérique latine et Caraïbes',
+    'Afrique',
+    'Asie et Océan Pacifique',
+    'États arabes',
+  ]
+  const data = graphCountByRegionData.value
+  const maxVal = Math.max(...data)
+
+  if (maxVal === 0) return 'Aucune donnée'
+
+  const indices = data.reduce((acc, val, i) => (val === maxVal ? [...acc, i] : acc), [])
+
+  if (indices.length > 1) return 'Égalité'
+  return regionNames[indices[0]]
 }
 
-//graphe 1
-const graphCountByRegion = {
+const topSiteType = () => {
+  const typeNames = ['culturels', 'naturels', 'mixte']
+  const data = graphPercentageByTypeOfSiteData.value
+  const maxVal = Math.max(...data)
+
+  if (maxVal === 0) return 'Aucune donnée'
+
+  const indices = data.reduce((acc, val, i) => (val === maxVal ? [...acc, i] : acc), [])
+
+  if (indices.length > 1) return 'Égalité'
+  return typeNames[indices[0]]
+}
+
+// ─── Graphes computed ─────────────────────────────────────────
+
+const graphCountByRegion = computed(() => ({
   colors: ['brown'],
   series: [
     {
       name: 'Continent',
-      data: graphCountByRegionData,
+      data: graphCountByRegionData.value,
     },
   ],
   chart: {
     type: 'bar',
     height: chartsHeight,
     width: chartsWidth,
-    toolbar: {
-      show: false,
-    },
+    toolbar: { show: false },
   },
   plotOptions: {
     bar: {
@@ -224,9 +123,7 @@ const graphCountByRegion = {
       borderRadiusApplication: 'end',
     },
   },
-  dataLabels: {
-    enabled: true, //afficher les chiffres sur les barres
-  },
+  dataLabels: { enabled: true },
   stroke: {
     show: true,
     width: 2,
@@ -250,99 +147,122 @@ const graphCountByRegion = {
       text: 'Nombre de sites',
       offsetX: -4,
     },
-    stepSize: getStepSize(Math.max(...graphCountByRegionData)),
+    stepSize: getStepSize(Math.max(...graphCountByRegionData.value, 0)),
   },
-  fill: {
-    opacity: 1,
-  },
-  // Quand on passe la souris sur une data
+  fill: { opacity: 1 },
   tooltip: {
     y: {
-      formatter: function (val) {
-        return val + ' sites explorés'
-      },
+      formatter: (val) => val + ' sites explorés',
     },
   },
-}
-//graphe 2
-const graphPercentageOfDiscovery = {
-  series: [Number(percentageVisited)], // on reconverti en Number
+}))
+
+const graphPercentageOfDiscovery = computed(() => ({
+  series: [Number(percentageVisited.value)],
   chart: {
     height: 350,
     type: 'radialBar',
   },
   plotOptions: {
     radialBar: {
-      hollow: {
-        size: '70%',
-      },
+      hollow: { size: '70%' },
     },
   },
   labels: ['Découverte du monde'],
-}
-//graphe 3
-const graphPercentageByTypeOfSite = {
-  series: graphPercentageByTypeOfSiteData,
+}))
+
+const graphPercentageByTypeOfSite = computed(() => ({
+  series: graphPercentageByTypeOfSiteData.value,
   chart: {
     width: 380,
     type: 'pie',
   },
   labels: ['Culturels', 'Naturels', 'Mixtes'],
-  legend: {
-    position: 'bottom',
-  },
-
+  legend: { position: 'bottom' },
   responsive: [
     {
       breakpoint: 480,
       options: {
-        chart: {
-          width: 200,
-        },
+        chart: { width: 200 },
       },
     },
   ],
-}
+}))
 </script>
 
 <template>
   <main>
-    <h1>Bonjour {{ user }}</h1>
+    <h1>Bonjour {{ user?.nom ?? '' }}</h1>
     <div id="statistics">
       <StatsCard
+        :key="chartKey"
         title="Exploration"
         class="stats"
         :graph="graphCountByRegion"
         :topValue="topSiteRegion()"
-      ></StatsCard>
+      />
       <StatsCard
+        :key="chartKey"
         title="Sites visités"
         class="stats"
         :graph="graphPercentageOfDiscovery"
-      ></StatsCard>
+      />
       <StatsCard
+        :key="chartKey"
         title="Répartition"
         class="stats"
         :graph="graphPercentageByTypeOfSite"
         :topValue="topSiteType()"
-      ></StatsCard>
+      />
     </div>
   </main>
 </template>
+
 <style>
+/* Style du conteneur principal */
+main {
+  background-color: #2d312e; /* Couleur de fond sombre de ta maquette */
+  min-height: 100vh;
+  padding: 40px 20px;
+  font-family: sans-serif;
+  color: #ffffff;
+}
+
+/* Titre principal */
 h1 {
   text-align: center;
-  margin: 16px;
-  font-size: 250%;
+  margin-bottom: 50px;
+  font-size: 3rem;
+  font-weight: 800;
+  font-style: italic; /* Style penché comme sur l'image */
 }
+
+/* Conteneur des statistiques */
 #statistics {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  gap: 40px; /* Espace uniforme entre toutes les cartes */
+  max-width: 1200px;
+  margin: 0 auto;
 }
-main {
-  background-color: var(--color-background);
+
+/* Style de base d'une carte (à appliquer dans StatsCard si nécessaire) */
+.stats {
+  background-color: #d9d9d9; /* Fond gris clair des cartes */
+  color: #000000; /* Texte noir à l'intérieur des cartes */
+  border-radius: 30px; /* Coins très arrondis comme sur l'image */
+  padding: 30px;
+  width: 450px; /* Largeur fixe pour garder l'alignement de la maquette */
+  min-height: 250px;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+
+  /* Permet d'aligner le badge "TOP" en haut à droite de la carte */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 </style>
