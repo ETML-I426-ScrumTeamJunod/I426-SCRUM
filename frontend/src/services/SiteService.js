@@ -1,29 +1,52 @@
 import axios from 'axios'
-
-const token = localStorage.getItem('token')
+import { getToken } from './AuthService'
 
 const apiClient = axios.create({
-  baseURL: 'http://localhost:3333/api/sites/',
+  baseURL: 'http://localhost:3333/api/',
   headers: {
     Accept: 'application/json',
     'Content-Type': 'application/json',
-    ...(token && { Authorization: `Bearer ${token}` }),
   },
 })
 
+apiClient.interceptors.request.use((config) => {
+  const token = getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 export default {
-  // GET /api/sites — all sites with en/fr translations + countries
-  getSites(lang = 'en') {
-    return apiClient.get(`?lang=${lang}`)
+  getSites() {
+    return apiClient.get('sites/')
   },
 
-  // GET /api/sites/:id/image — raw image blob
   getImage(id) {
-    return apiClient.get(`${id}/image`, { responseType: 'blob' })
+    return apiClient.get(`sites/${id}/image`, { responseType: 'blob' })
   },
 
-  // GET /api/sites/:id/details?lang=en — nom + description
   getDetails(id, lang = 'en') {
-    return apiClient.get(`${id}/details`, { params: { lang } })
+    return apiClient.get(`sites/${id}/details`, { params: { lang } })
+  },
+
+  getUserLists() {
+    return apiClient.get('me/lists')
+  },
+
+  addToWishlist(id) {
+    return apiClient.post(`sites/${id}/wishlist`)
+  },
+
+  removeFromWishlist(id) {
+    return apiClient.delete(`sites/${id}/wishlist`)
+  },
+
+  markAsVisited(id) {
+    return apiClient.post(`sites/${id}/visited`)
+  },
+
+  removeFromVisited(id) {
+    return apiClient.delete(`sites/${id}/visited`)
   },
 }

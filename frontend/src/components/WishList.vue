@@ -1,139 +1,108 @@
 <script setup lang="ts">
-import { RouterLink, useRouter } from 'vue-router'
+import { onMounted, ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
+import SiteService from '@/services/SiteService'
+import { getUser, isAuthenticated } from '@/services/AuthService'
 
+const { locale } = useI18n()
 const router = useRouter()
 
-const user = {
-  name: 'Bertrand',
-  email: 'bertrand.sahli@eduvaud.ch',
-  mot_de_passe: '1234567890',
+const wishlist = ref<any[]>([])
+const visited = ref<any[]>([])
+const loading = ref(true)
+const user = ref(getUser())
+
+const getSiteName = (site: any) => {
+  const translation = site?.traductions?.find((t: any) => t.codeLangue === locale.value)
+  return translation?.nom ?? site?.traductions?.[0]?.nom ?? ''
 }
 
-const sites = [
-  {
-    id: 1,
-    nom: 'Ancient and Primeval Beech Forests',
-    categorie: 'Natural',
-    description: 'This transboundary property...',
-    lien_image: '/ressources/images/forests.png',
-    pays: [
-      'Albania',
-      'Austria',
-      'Belgium',
-      'Bulgaria',
-      'Croatia',
-      'Germany',
-      'Italy',
-      'Romania',
-      'Slovakia',
-      'Slovenia',
-      'Spain',
-      'Ukraine',
-    ],
-    wishlist: true,
-    visited: true,
-  },
-  {
-    id: 2,
-    nom: 'Jesuit Missions of the Guaranis',
-    categorie: 'Natural',
-    description: 'Jesuit Missions of the Guaranis...',
-    lien_image: '/ressources/images/san-ignacio.png',
-    pays: ['Argentina', 'Brazil'],
-    wishlist: true,
-    visited: true,
-  },
-]
+const getSiteImageUrl = (site: any) =>
+  site.imageExtension ? `http://localhost:3333/api/sites/${site.id}/image` : null
 
+const getSiteCountries = (site: any) => site?.pays?.map((p: any) => p.nom).join(', ') ?? ''
 
+const totalSites = computed(() => wishlist.value.length + visited.value.length)
+const visitedCount = computed(() => visited.value.length)
+const progressPercent = computed(() =>
+  totalSites.value > 0 ? Math.round((visitedCount.value / totalSites.value) * 100) : 0,
+)
 
-const visited_site = []
-
-const not_visited_site = []
-
-sites.forEach(element => {
-  if(element.visited == true)
-  {
-    visited_site.push(element)
-  }else 
-  {
-    not_visited_site.push(element)
+onMounted(async () => {
+  if (!isAuthenticated()) {
+    router.push('/login')
+    return
   }
-});
 
-function getVisitedAmount() {
-  let visited = 0
-
-  sites.forEach((site) => {
-    if (site.visited) visited++
-  })
-  return visited
-}
+  try {
+    const { data } = await SiteService.getUserLists()
+    wishlist.value = data.wishlist
+    visited.value = data.visited
+  } catch {
+    // ignore
+  } finally {
+    loading.value = false
+  }
+})
 </script>
 
 <template>
   <div class="page-wrapper">
     <div class="content-container">
-      <h1 class="welcome-title">Bonjour, {{ user.name }}!</h1>
+      <h1 class="welcome-title">Bonjour, {{ user?.nom ?? '' }}!</h1>
+
       <section class="stats-card">
         <div class="stats-header">
           <h2 class="stats-main-title">Progression UNESCO</h2>
           <p class="stats-subtitle">Votre voyage autour du monde</p>
         </div>
         <div class="progress-container">
-          <progress
-            :value="getVisitedAmount()"
-            :max="sites.length"
-            style="border-radius: 10px"
-          ></progress>
+          <progress :value="visitedCount" :max="totalSites || 1" style="border-radius: 10px"></progress>
           <div class="progress-info">
-            <span
-              >Vous avez visité {{ getVisitedAmount() }} sites sur {{ sites.length }} inscrit dans
-              votre liste!!</span
-            >
-            <span class="percentage-label"
-              >{{ Math.round((getVisitedAmount() / sites.length) * 100) }}%<br /><small
-                style="font-weight: bold; font-size: 20"
-                >complété</small
-              ></span
-            >
+            <span>Vous avez visité {{ visitedCount }} sites sur {{ totalSites }} inscrit dans votre liste!</span>
+            <span class="percentage-label">{{ progressPercent }}%<br /><small style="font-weight: bold; font-size: 20">complété</small></span>
           </div>
         </div>
       </section>
+
       <h2 class="list-title">Votre Liste</h2>
-      <div class="sites-grid">
-        <p v-if="not_visited_site.length == 0" class="visited-or-not">Vous n'avez aucun site dans votre liste pour le moment</p>
-        <div
-          v-for="item in sites"
-          :key="item.id"
-          class="site-card"
-          v-show="!item.visited && item.wishlist"
-        >
-        
-          <RouterLink to="/">
-            <div class="image-box">
-              <img :src="item.lien_image" :alt="item.nom" />
-            </div>
-            <div class="site-details">
-              <h3>{{ item.nom }}</h3>
-              📍<span class="country-info" v-for="value in item.pays"> {{ value + ', ' }}</span>
-            </div>
-          </RouterLink>
+      <div v-if="loading" class="loading-msg">Chargement...</div>
+      <div v-else class="sites-grid">
+        <p v-if="wishlist.length === 0" class="visited-or-not">Vous n'avez aucun site dans votre liste pour le moment</p>
+        <div v-for="site in wishlist" :key="site.id" class="site-card">
+          <div class="image-box">
+            <img
+              v-if="getSiteImageUrl(site)"
+              :src="getSiteImageUrl(site)!"
+              :alt="getSiteName(site)"
+            />
+            <div v-else class="no-image"></div>
+          </div>
+          <div class="site-details">
+            <h3>{{ getSiteName(site) }}</h3>
+            📍 <span class="country-info">{{ getSiteCountries(site) }}</span>
+          </div>
         </div>
       </div>
+
       <h2 class="list-title">Sites visités</h2>
-      <div class="sites-grid">
-        <p v-if="visited_site.length == 0" class="visited-or-not">Vous n'avez visité aucun site pour le moment </p>
-        <div v-for="item in sites" :key="item.id" class="site-card" v-show="item.visited">
-          <RouterLink to="/">
-            <div class="image-box">
-              <img :src="item.lien_image" :alt="item.nom" />
-            </div>
-            <div class="site-details">
-              <h3>{{ item.nom }}</h3>
-              📍<span class="country-info" v-for="value in item.pays"> {{ value + ', ' }}</span>
-            </div>
-          </RouterLink>
+      <div v-if="loading" class="loading-msg">Chargement...</div>
+      <div v-else class="sites-grid">
+        <p v-if="visited.length === 0" class="visited-or-not">Vous n'avez visité aucun site pour le moment</p>
+        <div v-for="site in visited" :key="site.id" class="site-card">
+          <div class="image-box">
+            <img
+              v-if="getSiteImageUrl(site)"
+              :src="getSiteImageUrl(site)!"
+              :alt="getSiteName(site)"
+            />
+            <div v-else class="no-image"></div>
+          </div>
+          <div class="site-details">
+            <h3>{{ getSiteName(site) }}</h3>
+            📍 <span class="country-info">{{ getSiteCountries(site) }}</span>
+          </div>
         </div>
       </div>
     </div>
@@ -163,9 +132,8 @@ function getVisitedAmount() {
   letter-spacing: -1px;
 }
 
-/* --- Section Statistiques (La bulle claire) --- */
 .stats-card {
-  background-color: #e2e2da; /* Couleur beige/gris clair */
+  background-color: #e2e2da;
   border-radius: 30px;
   padding: 25px 40px;
   color: #444;
@@ -183,28 +151,25 @@ function getVisitedAmount() {
   font-size: 0.9rem;
 }
 
-/* Barre de progression Rouge */
 progress {
   width: 100%;
   height: 22px;
-  appearance: none; /* Désactive le look Windows/Mac par défaut */
+  appearance: none;
   border: 1px solid #999;
-  border-radius: 11px; /* Arrondi du contour */
-  overflow: hidden; /* Coupe ce qui dépasse des arrondis */
+  border-radius: 11px;
+  overflow: hidden;
 }
 
-/* L'ARRONDI DE L'INTÉRIEUR (Chrome, Safari, Edge) */
 progress::-webkit-progress-bar {
   background-color: white;
   border-radius: 11px;
 }
 
 progress::-webkit-progress-value {
-  background-color: #b30000; /* Ton rouge maquette */
-  border-radius: 11px; /* C'est ça qui arrondit la barre de couleur ! */
+  background-color: #b30000;
+  border-radius: 11px;
 }
 
-/* L'ARRONDI DE L'INTÉRIEUR (Firefox) */
 progress::-moz-progress-bar {
   background-color: #b30000;
   border-radius: 11px;
@@ -227,17 +192,15 @@ progress::-moz-progress-bar {
   line-height: 1;
 }
 
-
-
-/* --- Grille des sites (4 colonnes) --- */
 .sites-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr); /* 4 colonnes identiques */
+  grid-template-columns: repeat(4, 1fr);
   gap: 30px;
+  margin-bottom: 60px;
 }
 
 .site-card {
-  background-color: #d9d9d9; /* Gris des cartes */
+  background-color: #d9d9d9;
   padding: 15px;
   border-radius: 20px;
   color: #333;
@@ -254,13 +217,19 @@ progress::-moz-progress-bar {
   background: white;
   margin-bottom: 15px;
   border-radius: 15px;
+  overflow: hidden;
 }
 
 .image-box img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 15px;
+}
+
+.no-image {
+  width: 100%;
+  height: 100%;
+  background-color: #ccc;
 }
 
 .site-details h3 {
@@ -272,22 +241,24 @@ progress::-moz-progress-bar {
 .country-info {
   margin: 5px 0 0 0;
   font-size: 0.8rem;
-  color: #cc0000; /* Rouge pour le pays */
+  color: #cc0000;
   font-weight: bold;
 }
 
-/* Responsive */
+.loading-msg {
+  color: #aaa;
+  font-style: italic;
+  margin-bottom: 30px;
+}
+
+.visited-or-not {
+  color: rgb(181, 181, 181);
+  font-style: italic;
+}
+
 @media (max-width: 1024px) {
   .sites-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 600px) {
-  .sites-grid {
-    grid-template-columns: 1fr;
-  }
-  .welcome-title {
-    font-size: 2.5rem;
   }
 }
 
@@ -305,24 +276,25 @@ progress::-moz-progress-bar {
   .site-card {
     margin-bottom: 20px;
     width: 320px;
+    justify-self: center;
   }
 
   .stats-card {
     margin-bottom: 40px;
   }
 
-  .site-card {
-    justify-self: center;
-  }
-
   .page-wrapper {
     padding-top: 10px;
   }
+}
 
-  .visited-or-not {
-    color: rgb(181, 181, 181);
-    font-style: italic;
-    text-align: center;
+@media (max-width: 600px) {
+  .sites-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-title {
+    font-size: 2.5rem;
   }
 }
 </style>

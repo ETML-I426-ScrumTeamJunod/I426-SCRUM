@@ -2,11 +2,42 @@ import Site from '#models/site'
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class SitesController {
-  /**
-   * Display a list of resource
-   */
   async index({ response }: HttpContext) {
     response.ok(await Site.query().preload('traductions').preload('pays'))
+  }
+
+  async getUserLists({ auth, response }: HttpContext) {
+    const user = auth.user!
+    await user.load('wishSites', (query) => query.preload('traductions').preload('pays'))
+    await user.load('visitedSites', (query) => query.preload('traductions').preload('pays'))
+    return response.ok({
+      wishlist: user.wishSites.map((s) => s.serialize()),
+      visited: user.visitedSites.map((s) => s.serialize()),
+    })
+  }
+
+  async addToWishlist({ auth, params, response }: HttpContext) {
+    const user = auth.user!
+    await user.related('wishSites').attach([Number(params.id)])
+    return response.ok({ message: 'Added to wishlist' })
+  }
+
+  async removeFromWishlist({ auth, params, response }: HttpContext) {
+    const user = auth.user!
+    await user.related('wishSites').detach([Number(params.id)])
+    return response.ok({ message: 'Removed from wishlist' })
+  }
+
+  async markAsVisited({ auth, params, response }: HttpContext) {
+    const user = auth.user!
+    await user.related('visitedSites').attach([Number(params.id)])
+    return response.ok({ message: 'Marked as visited' })
+  }
+
+  async removeFromVisited({ auth, params, response }: HttpContext) {
+    const user = auth.user!
+    await user.related('visitedSites').detach([Number(params.id)])
+    return response.ok({ message: 'Removed from visited' })
   }
 
   public async getImage({ params, response }: HttpContext) {

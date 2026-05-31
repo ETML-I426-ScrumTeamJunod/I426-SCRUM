@@ -29,6 +29,11 @@ router
       .group(() => {
         router.post('logout', [AuthController, 'logout'])
         router.get('me', [AuthController, 'me'])
+        router.get('me/lists', [SitesController, 'getUserLists'])
+        router.post('sites/:id/wishlist', [SitesController, 'addToWishlist'])
+        router.delete('sites/:id/wishlist', [SitesController, 'removeFromWishlist'])
+        router.post('sites/:id/visited', [SitesController, 'markAsVisited'])
+        router.delete('sites/:id/visited', [SitesController, 'removeFromVisited'])
       })
       .use(middleware.auth())
   })

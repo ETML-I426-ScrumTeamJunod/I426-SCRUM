@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { onMounted, ref, computed, inject, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import SiteService from '@/services/SiteService'
+import { isAuthenticated } from '@/services/AuthService'
 
 declare const L: any
 
 const { t, locale } = useI18n()
+const router = useRouter()
 
 const sitesList = ref<any[]>([])
 
@@ -91,6 +93,48 @@ let markerCluster: any = null
 let markers: any[] = []
 const markerSelected = ref(null)
 const currentSite = ref(null)
+
+const wishlistIds = ref<number[]>([])
+const visitedIds = ref<number[]>([])
+
+const isInWishlist = computed(() =>
+  currentSite.value ? wishlistIds.value.includes(currentSite.value.id) : false,
+)
+const isVisited = computed(() =>
+  currentSite.value ? visitedIds.value.includes(currentSite.value.id) : false,
+)
+
+const toggleWishlist = async () => {
+  if (!currentSite.value) return
+  if (!isAuthenticated()) {
+    router.push('/login')
+    return
+  }
+  const id = (currentSite.value as any).id
+  if (isInWishlist.value) {
+    await SiteService.removeFromWishlist(id)
+    wishlistIds.value = wishlistIds.value.filter((i) => i !== id)
+  } else {
+    await SiteService.addToWishlist(id)
+    wishlistIds.value = [...wishlistIds.value, id]
+  }
+}
+
+const toggleVisited = async () => {
+  if (!currentSite.value) return
+  if (!isAuthenticated()) {
+    router.push('/login')
+    return
+  }
+  const id = (currentSite.value as any).id
+  if (isVisited.value) {
+    await SiteService.removeFromVisited(id)
+    visitedIds.value = visitedIds.value.filter((i) => i !== id)
+  } else {
+    await SiteService.markAsVisited(id)
+    visitedIds.value = [...visitedIds.value, id]
+  }
+}
 
 let pinNatural: any = null
 let pinCultural: any = null
@@ -227,6 +271,12 @@ onMounted(async () => {
 
   await loadAndDisplaySites()
 
+  if (isAuthenticated()) {
+    const { data } = await SiteService.getUserLists()
+    wishlistIds.value = data.wishlist.map((s: any) => s.id)
+    visitedIds.value = data.visited.map((s: any) => s.id)
+  }
+
   map.addLayer(markerCluster)
 
   map.on('click', () => {
@@ -289,23 +339,11 @@ onMounted(async () => {
             </p>
             <hr />
             <p class="site-description">{{ getSiteDescription(currentSite) }}</p>
-            <button>
-              {{
-                currentSite
-                  ? currentSite.InWishlist
-                    ? $t('home.removeFromWishlist')
-                    : $t('home.addToWishlist')
-                  : ''
-              }}
+            <button class="action-btn wishlist-btn" @click="toggleWishlist">
+              {{ isInWishlist ? $t('home.removeFromWishlist') : $t('home.addToWishlist') }}
             </button>
-            <button>
-              {{
-                currentSite
-                  ? currentSite.Visited
-                    ? $t('home.markAsNotVisited')
-                    : $t('home.markAsVisited')
-                  : ''
-              }}
+            <button class="action-btn visited-btn" @click="toggleVisited">
+              {{ isVisited ? $t('home.markAsNotVisited') : $t('home.markAsVisited') }}
             </button>
           </div>
         </div>
@@ -393,5 +431,35 @@ onMounted(async () => {
   margin-bottom: 1rem;
   object-fit: cover;
   max-height: 200px;
+}
+
+.action-btn {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  margin-top: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.wishlist-btn {
+  background-color: #1a73e8;
+  color: white;
+}
+
+.wishlist-btn:hover {
+  background-color: #1558b0;
+}
+
+.visited-btn {
+  background-color: #2e7d32;
+  color: white;
+}
+
+.visited-btn:hover {
+  background-color: #1b5e20;
 }
 </style>
