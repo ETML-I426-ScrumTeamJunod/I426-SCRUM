@@ -222,50 +222,63 @@ const graphPercentageByTypeOfSite = computed(() => ({
 </template>
 
 <style>
-/* Style du conteneur principal */
 main {
-  background-color: #2d312e; /* Couleur de fond sombre de ta maquette */
+  background-color: #2d312e;
   min-height: 100vh;
   padding: 40px 20px;
   font-family: sans-serif;
   color: #ffffff;
 }
 
-/* Titre principal */
 h1 {
   text-align: center;
   margin-bottom: 50px;
   font-size: 3rem;
   font-weight: 800;
-  font-style: italic; /* Style penché comme sur l'image */
+  font-style: italic;
 }
 
-/* Conteneur des statistiques */
 #statistics {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
-  gap: 40px; /* Espace uniforme entre toutes les cartes */
+  gap: 40px;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* Style de base d'une carte (à appliquer dans StatsCard si nécessaire) */
 .stats {
-  background-color: #d9d9d9; /* Fond gris clair des cartes */
-  color: #000000; /* Texte noir à l'intérieur des cartes */
-  border-radius: 30px; /* Coins très arrondis comme sur l'image */
+  background-color: #d9d9d9;
+  color: #000000;
+  border-radius: 30px;
   padding: 30px;
-  width: 450px; /* Largeur fixe pour garder l'alignement de la maquette */
-  min-height: 250px;
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-
-  /* Permet d'aligner le badge "TOP" en haut à droite de la carte */
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+}
+
+#statistics .stats:nth-child(1) {
+  flex: 1 1 100%;
+  max-width: 940px;
+  min-height: 420px;
+}
+
+#statistics .stats:nth-child(2),
+#statistics .stats:nth-child(3) {
+  width: 450px;
+  flex: 0 0 450px;
+  min-height: 380px;
+}
+
+.chart-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
